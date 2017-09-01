@@ -10,3 +10,4 @@ coverage==4.2
 coveralls==1.1
 mock==2.0.0
 gevent==1.1.2
+uWSGI==2.0.15
