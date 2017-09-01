@@ -11,7 +11,7 @@ import os
 import confy
 from django.core.wsgi import get_wsgi_application
 
-confy.read_environment_file(".env")
+confy.read_environment_file()
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "authome.settings")
 
