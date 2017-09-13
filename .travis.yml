@@ -18,12 +18,14 @@ env:
         - SECRET_KEY="SecretKeyForTravisCI"
         - DATABASE_URL="postgis://postgres@localhost:5432/travis_ci_test"
         - AZUREAD_AUTHORITY="https://login.microsoftonline.com/thisisnotarealazureaudauthorityurl"
+sudo: true
 install:
-    - psql -U postgres -c "create extension postgis"
+    - sudo apt-get install postgresql-9.4-postgis-2.3 postgis -y -q
+    - psql -U postgres -c "create extension postgis;"
     - pip install --upgrade setuptools
     - pip install -r requirements.txt
 before_script:
-    - psql -c 'create database travis_ci_test;' -U postgres
+    - psql -U postgres -c 'create database travis_ci_test;'
     - python manage.py migrate --noinput
 script:
     - coverage run --source="." manage.py test
