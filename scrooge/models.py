@@ -17,6 +17,12 @@ class ContractReference(models.Model):
     start = models.DateField(default=date.today)
     end = models.DateField(null=True, blank=True)
 
+    def __str__(self):
+        return "{} ({})".format(self.vendor, self.contract)
+
+    class Meta:
+        unique_together = ("vendor", "contract")
+
 class Cost(models.Model):
     contract = models.ForeignKey(ContractReference)
     name = models.CharField(max_length=320, help_text="Product or Service")
