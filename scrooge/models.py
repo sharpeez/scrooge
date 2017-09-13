@@ -14,7 +14,7 @@ class ContractReference(models.Model):
     brand = models.CharField(max_length=320, blank=True)
     contract = models.CharField(max_length=320)
     invoice_period = models.CharField(max_length=320, default="Annual")
-    start = models.DateField(default=date.today())
+    start = models.DateField(default=date.today)
     end = models.DateField(null=True, blank=True)
 
 class Cost(models.Model):
