@@ -2,11 +2,11 @@ from django.db import models
 from datetime import date
 
 FINYEAR_CHOICES = (
-    ('2015', '2015/16'),
-    ('2016', '2016/17'),
-    ('2017', '2017/18'),
-    ('2018', '2018/19'),
-    ('2019', '2019/20')
+    (2015, '2015/16'),
+    (2016, '2016/17'),
+    (2017, '2017/18'),
+    (2018, '2018/19'),
+    (2019, '2019/20')
 )
 
 class ContractReference(models.Model):
