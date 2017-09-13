@@ -3,7 +3,7 @@ env*
 .coverage
 media/
 logs/
-staticfiles/
+static/
 venv/
 *.pyc
 *.sw[po]
