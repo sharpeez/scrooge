@@ -1,5 +1,5 @@
-from django.db import models
 from datetime import date
+from django.db import models
 
 FINYEAR_CHOICES = (
     (2015, '2015/16'),
