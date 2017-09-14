@@ -9,6 +9,7 @@ venv/
 *.sw[po]
 gmon.out
 .sass-cache/
+.vscode/
 
 # Database/fixture dumps
 *.pgdump
