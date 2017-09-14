@@ -1,6 +1,6 @@
 from django.contrib import admin
 from reversion.admin import VersionAdmin
-from scrooge.models import ContractReference, Cost, CostBreakdown
+from scrooge.models import ContractReference, Cost, CostBreakdown, ITSystem, UserGroup
 
 @admin.register(ContractReference)
 class ContractReferenceAdmin(VersionAdmin):
@@ -14,6 +14,15 @@ class ContractReferenceAdmin(VersionAdmin):
 class CostAdmin(VersionAdmin):
     list_filter = ["finyear", "allocated_percentage"]
 
+@admin.register(ITSystem)
+class ITSystemAdmin(VersionAdmin):
+    pass
+
+@admin.register(UserGroup)
+class UserGroupAdmin(VersionAdmin):
+    pass
+
 @admin.register(CostBreakdown)
 class CostBreakdownAdmin(VersionAdmin):
     list_filter = ["service_pool"]
+    filter_horizontal = ["it_systems", "user_groups"]

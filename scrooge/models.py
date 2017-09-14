@@ -40,9 +40,9 @@ class Cost(models.Model):
         return self.name
 
 class ITSystem(models.Model):
-    system_id = models.CharField(max_length=4)
+    system_id = models.CharField(max_length=4, unique=True)
     name = models.CharField(max_length=320)
-    cost_data = JSONField()
+    cost_data = JSONField(default=dict)
 
     def __str__(self):
         return "{} - {}".format(self.system_id, self.name)
@@ -50,7 +50,7 @@ class ITSystem(models.Model):
 class UserGroup(models.Model):
     name = models.CharField(max_length=320)
     user_count = models.PositiveIntegerField()
-    cost_data = JSONField()
+    cost_data = JSONField(default=dict)
 
     def __str__(self):
         return self.name
