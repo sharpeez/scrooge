@@ -1,9 +1,7 @@
 Django<1.12
 django-confy==1.0.4
 git+https://github.com/parksandwildlife/dpaw-utils.git@0.3a16#egg=dpaw-utils
-coverage==4.2
-coveralls==1.1
-mock==2.0.0
 gevent==1.1.2
 uWSGI==2.0.15
 django-reversion==2.0.10
+django-import-export==0.5.1
