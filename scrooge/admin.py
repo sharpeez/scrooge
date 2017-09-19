@@ -22,7 +22,7 @@ class CostAdmin(ScroogeAdmin):
     list_filter = ["finyear", "allocated_percentage"]
     search_fields = ["name", "description", "comment", "contract__vendor", "contract__contract", "contract__brand"]
 
-@admin.register(ITSystem)
+#@admin.register(ITSystem)
 class ITSystemAdmin(ScroogeAdmin):
     pass
 
@@ -32,5 +32,7 @@ class UserGroupAdmin(ScroogeAdmin):
 
 @admin.register(CostBreakdown)
 class CostBreakdownAdmin(ScroogeAdmin):
+    list_display = ["__str__", "cost", "service_pool", "percentage", "calc_predicted_cost"]
+    list_editable = ["service_pool", "percentage"]
     list_filter = ["service_pool"]
     filter_horizontal = ["it_systems", "user_groups"]

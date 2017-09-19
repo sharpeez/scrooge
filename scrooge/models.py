@@ -1,6 +1,6 @@
 from datetime import date
 from django.db import models
-from django.core.validators import MaxValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 
@@ -29,17 +29,17 @@ class Contract(models.Model):
 class Cost(models.Model):
     contract = models.ForeignKey(Contract)
     name = models.CharField(max_length=320, help_text="Product or Service")
-    description = models.TextField(blank=True)
+    description = models.TextField(default="N/A")
     comment = models.TextField(blank=True, default="")
     quantity = models.CharField(max_length=320, default="1")
     finyear = models.IntegerField(choices=FINYEAR_CHOICES)
-    actual_cost = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
-    predicted_cost = models.DecimalField(max_digits=12, decimal_places=2, null=True)
-    allocated_percentage = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(100)], editable=False)
+    actual_cost = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    predicted_cost = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    allocated_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=[MinValueValidator(0), MaxValueValidator(100)], editable=False)
 
     def calc_allocated_percentage(self):
         total = 0
-        for pct in self.cost_breakdown_set.values("percentage"):
+        for pct in self.costbreakdown_set.values("percentage"):
             total += pct[0]
         return total
 
@@ -81,9 +81,15 @@ class CostBreakdown(models.Model):
     name = models.CharField(max_length=320)
     description = models.TextField(blank=True)
     service_pool = models.CharField(max_length=64, choices=SERVICE_POOL_CHOICES)
-    percentage = models.PositiveIntegerField(default=0, validators=[MaxValueValidator(100)])
+    percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=[MinValueValidator(0), MaxValueValidator(100)])
     it_systems = models.ManyToManyField(ITSystem, blank=True, editable=False)
-    user_groups = models.ManyToManyField(UserGroup, blank=True, editable=False)
+    user_groups = models.ManyToManyField(UserGroup, blank=True)
+
+    def calc_actual_cost(self):
+        return self.percentage / 100 * self.cost.actual_cost
+
+    def calc_predicted_cost(self):
+        return self.percentage / 100 * self.cost.predicted_cost
 
     def clean(self):
         if self.percentage + self.cost.allocated_percentage > 100:
@@ -91,3 +97,6 @@ class CostBreakdown(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        unique_together = ("cost", "name")

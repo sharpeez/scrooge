@@ -15,12 +15,14 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
-from django.views.generic import RedirectView
+from scrooge.views import HomePageView, service_pool_report
 
-admin.site.site_header = "Scrooge Cost DB"
-admin.site.site_name = "Scrooge Cost DB"
+admin.site.site_header = HomePageView.title
+admin.site.site_name = HomePageView.title
 
 urlpatterns = [
-    url(r'^$', RedirectView.as_view(url="/admin")),
+    url(r'^$', HomePageView.as_view()),
     url(r'^admin/', admin.site.urls),
+    url(r'^reports/servicepool.csv', service_pool_report),
+    url(r'^reports/usergroup.csv', user_group_report),
 ]
