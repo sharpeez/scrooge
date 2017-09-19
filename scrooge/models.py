@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.postgres.fields import JSONField
+from django.core.serializers.json import DjangoJSONEncoder
 from django.core.exceptions import ValidationError
 
 FINYEAR_CHOICES = (
@@ -63,7 +64,7 @@ class Cost(models.Model):
 class ITSystem(models.Model):
     system_id = models.CharField(max_length=4, unique=True)
     name = models.CharField(max_length=320)
-    cost_data = JSONField(default=dict, editable=False)
+    cost_data = JSONField(default=dict, encoder=DjangoJSONEncoder, editable=False)
 
     def __str__(self):
         return "{} - {}".format(self.system_id, self.name)
@@ -71,10 +72,22 @@ class ITSystem(models.Model):
 class UserGroup(models.Model):
     name = models.CharField(max_length=320)
     user_count = models.PositiveIntegerField()
-    cost_data = JSONField(default=dict, editable=False)
+    cost_data = JSONField(default=dict, encoder=DjangoJSONEncoder, editable=False)
+
+    @classmethod
+    def update_calculations(cls):
+        for ug in cls.objects.all():
+            ug.cost_data = [item for item in ug.costbreakdown_set.values()]
+            ug.save()
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        ordering = ('-user_count',)
+
+def largest_user_group():
+    return UserGroup.objects.first().pk
 
 class CostBreakdown(models.Model):
     SERVICE_POOL_CHOICES = (
@@ -94,7 +107,7 @@ class CostBreakdown(models.Model):
     service_pool = models.CharField(max_length=64, choices=SERVICE_POOL_CHOICES)
     percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=[MinValueValidator(0), MaxValueValidator(100)])
     it_systems = models.ManyToManyField(ITSystem, blank=True, editable=False)
-    user_groups = models.ManyToManyField(UserGroup, blank=True, default=UserGroup.objects.order_by('-user_count').first().pk)
+    user_groups = models.ManyToManyField(UserGroup, blank=True, default=largest_user_group)
     total_user_count = models.PositiveIntegerField(default=0)
     finyear_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=[MinValueValidator(0), MaxValueValidator(100)], editable=False)
     predicted_cost = models.DecimalField(max_digits=12, decimal_places=2, default=0, editable=False)
