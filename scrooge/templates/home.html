@@ -6,6 +6,16 @@
 <div id="content-main">
     <h2>Overview</h2>
     <h3>Service Pools</h3>
+    <table>
+        <tr>
+            <th>Service Pool</th><th>Cost Percentage</th><th>Predicted Cost</th>
+        </tr>
+        {% for sp in servicepools %}
+        <tr>
+            <td>{{ sp.service_pool }}</td><td>{{ sp.finyear_percentage__sum }}</td><td>{{ sp.predicted_cost__sum }}</td>
+        </tr>
+        {% endfor %}
+    </table>
     <h3>User Groups</h3>
     <h2>Administration</h2>
     To work on the data for the cost reports, please visit <a href="/admin">/admin</a>.

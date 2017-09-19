@@ -94,7 +94,8 @@ class CostBreakdown(models.Model):
     service_pool = models.CharField(max_length=64, choices=SERVICE_POOL_CHOICES)
     percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=[MinValueValidator(0), MaxValueValidator(100)])
     it_systems = models.ManyToManyField(ITSystem, blank=True, editable=False)
-    user_groups = models.ManyToManyField(UserGroup, default=UserGroup.objects.order_by('-user_count').first())
+    user_groups = models.ManyToManyField(UserGroup, blank=True, default=UserGroup.objects.order_by('-user_count').first().pk)
+    total_user_count = models.PositiveIntegerField(default=0)
     finyear_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=[MinValueValidator(0), MaxValueValidator(100)], editable=False)
     predicted_cost = models.DecimalField(max_digits=12, decimal_places=2, default=0, editable=False)
 
@@ -104,6 +105,7 @@ class CostBreakdown(models.Model):
             total = cb.cost.finyear_sum('predicted_cost')
             cb.finyear_percentage = cb.percentage / 100 * cb.cost.predicted_percentage()
             cb.predicted_cost = cb.finyear_percentage / 100 * total
+            cb.total_user_count = cb.user_groups.aggregate(total=models.Sum("user_count"))["total"]
             cb.save()
 
     def user_groups_display(self):
@@ -114,3 +116,4 @@ class CostBreakdown(models.Model):
 
     class Meta:
         unique_together = ("cost", "name")
+        ordering = ('-percentage',)
