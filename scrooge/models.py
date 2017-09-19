@@ -1,4 +1,5 @@
 from datetime import date
+from decimal import Decimal
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.postgres.fields import JSONField
@@ -35,16 +36,26 @@ class Cost(models.Model):
     finyear = models.IntegerField(choices=FINYEAR_CHOICES)
     actual_cost = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     predicted_cost = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    allocated_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=[MinValueValidator(0), MaxValueValidator(100)], editable=False)
 
-    def calc_allocated_percentage(self):
-        total = 0
-        for pct in self.costbreakdown_set.values("percentage"):
-            total += pct[0]
-        return total
+    def finyear_sum(self, fieldname):
+        return Cost.objects.filter(finyear=self.finyear).aggregate(sum=models.Sum(fieldname))["sum"]
+
+    def actual_percentage(self):
+        return (100 * self.actual_cost / self.finyear_sum('actual_cost')).quantize(Decimal(10)**-2)
+
+    def predicted_percentage(self):
+        return (100 * self.predicted_cost / self.finyear_sum('predicted_cost')).quantize(Decimal(10)**-2)
+
+    def breakdown(self):
+        display = ", ".join([str(c) for c in self.costbreakdown_set.all()])
+        total = self.costbreakdown_set.aggregate(total=models.Sum("percentage"))["total"]
+        if total != 100:
+            display = "INVALID {}%: ".format(100 - total) + display
+        return display
 
     class Meta:
         unique_together = ("name", "finyear", "contract")
+        ordering = ('-predicted_cost',)
 
     def __str__(self):
         return self.name
@@ -83,20 +94,23 @@ class CostBreakdown(models.Model):
     service_pool = models.CharField(max_length=64, choices=SERVICE_POOL_CHOICES)
     percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=[MinValueValidator(0), MaxValueValidator(100)])
     it_systems = models.ManyToManyField(ITSystem, blank=True, editable=False)
-    user_groups = models.ManyToManyField(UserGroup, blank=True)
+    user_groups = models.ManyToManyField(UserGroup, default=UserGroup.objects.order_by('-user_count').first())
+    finyear_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=[MinValueValidator(0), MaxValueValidator(100)], editable=False)
+    predicted_cost = models.DecimalField(max_digits=12, decimal_places=2, default=0, editable=False)
 
-    def calc_actual_cost(self):
-        return self.percentage / 100 * self.cost.actual_cost
+    @classmethod
+    def update_calculations(cls):
+        for cb in cls.objects.all():
+            total = cb.cost.finyear_sum('predicted_cost')
+            cb.finyear_percentage = cb.percentage / 100 * cb.cost.predicted_percentage()
+            cb.predicted_cost = cb.finyear_percentage / 100 * total
+            cb.save()
 
-    def calc_predicted_cost(self):
-        return self.percentage / 100 * self.cost.predicted_cost
-
-    def clean(self):
-        if self.percentage + self.cost.allocated_percentage > 100:
-            raise ValidationError("Total allocated percentage can't exceed 100")
+    def user_groups_display(self):
+        output = ",".join(self.user_groups.all())
 
     def __str__(self):
-        return self.name
+        return "{} ({}%)".format(self.name, self.percentage)
 
     class Meta:
         unique_together = ("cost", "name")

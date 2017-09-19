@@ -13,7 +13,8 @@ class HomePageView(TemplateView):
         context["site_header"], context["site_title"] = self.title, self.title
         return context
 
-def service_pool_report(request):
+def cost_breakdown_report(request):
+    CostBreakdown.update_calculations()
     return render_to_csv_response(CostBreakdown.objects.values())
 
 def user_group_report(request):

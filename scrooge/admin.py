@@ -15,12 +15,18 @@ class ContractAdmin(ScroogeAdmin):
     date_hierarchy = "start"
     list_filter = ["vendor", "invoice_period"]
 
+class CostBreakdownAdmin(admin.StackedInline):
+    model = CostBreakdown
+    extra = 0
+    fields = (("name", "service_pool", "percentage"), "user_groups")
+    filter_horizontal = ['user_groups']
+
 @admin.register(Cost)
 class CostAdmin(ScroogeAdmin):
-    list_editable = ["actual_cost", "predicted_cost"]
-    list_display = ["__str__", "contract", "quantity"] + list_editable + ["description", "comment"]
-    list_filter = ["finyear", "allocated_percentage"]
+    list_display = ["__str__", "contract", "quantity", "predicted_cost", "predicted_percentage", "breakdown"]
+    list_filter = ["finyear"]
     search_fields = ["name", "description", "comment", "contract__vendor", "contract__contract", "contract__brand"]
+    inlines = [CostBreakdownAdmin]
 
 #@admin.register(ITSystem)
 class ITSystemAdmin(ScroogeAdmin):
@@ -28,11 +34,4 @@ class ITSystemAdmin(ScroogeAdmin):
 
 @admin.register(UserGroup)
 class UserGroupAdmin(ScroogeAdmin):
-    pass
-
-@admin.register(CostBreakdown)
-class CostBreakdownAdmin(ScroogeAdmin):
-    list_display = ["__str__", "cost", "service_pool", "percentage", "calc_predicted_cost"]
-    list_editable = ["service_pool", "percentage"]
-    list_filter = ["service_pool"]
-    filter_horizontal = ["it_systems", "user_groups"]
+    list_display = ["__str__", "user_count"]
