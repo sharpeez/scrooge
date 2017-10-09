@@ -34,4 +34,4 @@ class ITSystemAdmin(ScroogeAdmin):
 
 @admin.register(UserGroup)
 class UserGroupAdmin(ScroogeAdmin):
-    list_display = ["__str__", "user_count"]
+    list_display = ["__str__", "user_count", "cost_centres", "it_systems"]

@@ -1,5 +1,6 @@
 from django.db.models import Sum
 from django.views.generic.base import TemplateView
+from django.utils import timezone
 
 from djqscsv import render_to_csv_response
 
@@ -17,6 +18,19 @@ class HomePageView(TemplateView):
         context["site_header"], context["site_title"] = self.title, self.title
         context["servicepools"] = cbqs.values("service_pool").annotate(Sum("finyear_percentage")).annotate(Sum("predicted_cost")).order_by("-finyear_percentage__sum").distinct()
         return context
+
+class BillView(TemplateView):
+    template_name = "bill.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(BillView, self).get_context_data(**kwargs)
+        context.update({
+            "title": "Test invoice",
+            "division": "dunno",
+            "created": timezone.now().date,
+        })
+        return context
+    
 
 def cost_breakdown_report(request):
     CostBreakdown.update_calculations()

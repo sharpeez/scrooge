@@ -61,17 +61,11 @@ class Cost(models.Model):
     def __str__(self):
         return self.name
 
-class ITSystem(models.Model):
-    system_id = models.CharField(max_length=4, unique=True)
-    name = models.CharField(max_length=320)
-    cost_data = JSONField(default=dict, encoder=DjangoJSONEncoder, editable=False)
-
-    def __str__(self):
-        return "{} - {}".format(self.system_id, self.name)
-
 class UserGroup(models.Model):
     name = models.CharField(max_length=320)
     user_count = models.PositiveIntegerField()
+    cost_centres = models.PositiveIntegerField()
+    it_systems = models.PositiveIntegerField()
     cost_data = JSONField(default=dict, encoder=DjangoJSONEncoder, editable=False)
 
     @classmethod
@@ -88,6 +82,15 @@ class UserGroup(models.Model):
 
 def largest_user_group():
     return UserGroup.objects.first().pk
+
+class ITSystem(models.Model):
+    system_id = models.CharField(max_length=4, unique=True)
+    name = models.CharField(max_length=320)
+    cost_data = JSONField(default=dict, encoder=DjangoJSONEncoder, editable=False)
+    user_group = models.ForeignKey(UserGroup)
+
+    def __str__(self):
+        return "{} - {}".format(self.system_id, self.name)
 
 class CostBreakdown(models.Model):
     SERVICE_POOL_CHOICES = (
