@@ -66,13 +66,25 @@ class UserGroup(models.Model):
     user_count = models.PositiveIntegerField()
     cost_centres = models.PositiveIntegerField()
     it_systems = models.PositiveIntegerField()
-    cost_data = JSONField(default=dict, encoder=DjangoJSONEncoder, editable=False)
+    predicted_cost = models.DecimalField(max_digits=12, decimal_places=2, default=0, editable=False)
+
+    def costs(self):
+        return self.costbreakdown_set.filter(predicted_cost__gt=0, cost__finyear=2017).order_by("-predicted_cost")
 
     @classmethod
     def update_calculations(cls):
         for ug in cls.objects.all():
-            ug.cost_data = [item for item in ug.costbreakdown_set.values()]
+            for cost in ug.costs():
+                ug.predicted_cost += cost.predicted_cost * Decimal(ug.user_count) / Decimal(cost.total_user_count)
             ug.save()
+
+    def vendors(self):
+        data = self.costs().order_by("cost__contract__vendor").values("cost__contract__vendor").distinct()
+        return data
+
+    def finyear_percentage(self):
+        total_cost = UserGroup.objects.aggregate(models.Sum("predicted_cost"))["predicted_cost__sum"]
+        return round(self.predicted_cost / total_cost * 100, 2)
 
     def __str__(self):
         return self.name
@@ -111,6 +123,7 @@ class CostBreakdown(models.Model):
     percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=[MinValueValidator(0), MaxValueValidator(100)])
     it_systems = models.ManyToManyField(ITSystem, blank=True, editable=False)
     user_groups = models.ManyToManyField(UserGroup, blank=True, default=largest_user_group)
+    system_cost = models.BooleanField(default=False)
     total_user_count = models.PositiveIntegerField(default=0)
     finyear_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=[MinValueValidator(0), MaxValueValidator(100)], editable=False)
     predicted_cost = models.DecimalField(max_digits=12, decimal_places=2, default=0, editable=False)

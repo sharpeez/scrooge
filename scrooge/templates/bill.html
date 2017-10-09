@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>{{ title }}</title>
+    <title>{{ usergroup.name }} Bill</title>
     
     <style>
     .invoice-box{
@@ -122,10 +122,10 @@
                             </td>
                             
                             <td>
-                                {{ division }}<br>
-                                {{ ccentres }} Cost Centres<br>
-                                {{ users }} Users<br>
-                                {{ systems }} IT Systems
+                                {{ usergroup.name }}<br>
+                                {{ usergroup.cost_centres }} Cost Centres<br>
+                                {{ usergroup.user_count }} Users<br>
+                                {{ usergroup.it_systems }} IT Systems
                             </td>
                         </tr>
                     </table>
@@ -141,32 +141,25 @@
                     End user cost estimate
                 </td>
             </tr>
+            {% for vendor in usergroup.vendors %}
             
             <tr class="item">
                 <td>
-                    Website design
+                    {{ vendor }}
                 </td>
                 
                 <td>
-                    $300.00
+                    {{ vendor }}
                 </td>
             </tr>
-            
-            <tr class="item last">
-                <td>
-                    Domain name (1 year)
-                </td>
-                
-                <td>
-                    $10.00
-                </td>
-            </tr>
+
+            {% endfor %}
             
             <tr class="subtotal">
                 <td></td>
                 
                 <td>
-                   End user subtotal: $385.00
+                   End user subtotal: ...
                 </td>
             </tr>
 
