@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'django_extensions',
     'import_export',
     'reversion',
-    'scrooge'
+    'scrooge',
+    'recoup'
 ]
 
 MIDDLEWARE = [
