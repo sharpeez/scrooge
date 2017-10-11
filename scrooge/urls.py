@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
-from scrooge.views import HomePageView, BillView, cost_breakdown_report, user_group_report
+from scrooge.views import HomePageView, BillView
 
 admin.site.site_header = HomePageView.title
 admin.site.site_name = HomePageView.title
@@ -24,6 +24,4 @@ urlpatterns = [
     url(r'^$', HomePageView.as_view()),
     url(r'^bill', BillView.as_view()),
     url(r'^admin/', admin.site.urls),
-    url(r'^reports/costbreakdown.csv', cost_breakdown_report),
-    url(r'^reports/usergroup.csv', user_group_report),
 ]

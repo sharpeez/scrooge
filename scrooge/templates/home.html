@@ -5,35 +5,17 @@
 {% block content %}
 <div id="content-main">
     <h2>Overview</h2>
-    Total cost: {{ total_cost }}
-    <h3>Service Pools</h3>
-    <table>
-        <tr>
-            <th>Service Pool</th><th>Cost Percentage</th><th>Predicted Cost</th>
-        </tr>
-        {% for sp in servicepools %}
-        <tr>
-            <td>{{ sp.service_pool }}</td><td>{{ sp.finyear_percentage__sum }}</td><td>{{ sp.predicted_cost__sum }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-    <h3>User Groups</h3>
-    <table>
-        <tr>
-            <th>User Group</th><th>Users</th><th>Cost Percentage</th><th>Predicted Cost</th>
-        </tr>
-        {% for ug in usergroups %}
-        <tr>
-            <td><a target="_blank" href="/bill?usergroup={{ ug.pk }}">{{ ug.name }}</a></td><td>{{ ug.user_count }}</td><td>{{ ug.finyear_percentage }}</td><td>{{ ug.predicted_cost }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+    Total cost for {{ year }}: {{ year.cost_estimate }} (actual: {{ year.cost }})<br>
+    Divisions (incomplete): <a href="/admin/recoup/division">Divisions</a>
     <h2>Administration</h2>
-    To work on the data for the cost reports, please visit <a href="/admin">/admin</a>.
-    <h2>Reports</h2>
+    To work on the data for the cost reports, please visit <a href="/admin/recoup">/admin/recoup</a> (main section: <a href="/admin/recoup/bill">Bills</a>).
+    <h2>Categorisations</h2>
     <ul>
-        <li><a href="/reports/costbreakdown.csv">Cost Breakdown</a></li>
-        <li><a href="/reports/usergroup.csv">User Groups</a></li>
+        <li><a href="/admin/recoup/servicepool">Service Pools</a></li>
+        <li><a href="/admin/recoup/enduserservice">End User Services</a></li>
+        <li><a href="/admin/recoup/platform">IT System Platforms</a></li>
     </ul>
+    <h2>Reports</h2>
+    TODO
 </div>
 {% endblock %}

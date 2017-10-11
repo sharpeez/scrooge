@@ -15,7 +15,7 @@ class ContractAdmin(ScroogeAdmin):
     date_hierarchy = "start"
     list_filter = ["vendor", "invoice_period"]
 
-class CostBreakdownAdmin(admin.StackedInline):
+class CostBreakdownAdmin(ImportExportMixin, admin.StackedInline):
     model = CostBreakdown
     extra = 0
     fields = (("name", "service_pool", "percentage"), "user_groups")

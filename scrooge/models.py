@@ -82,10 +82,6 @@ class UserGroup(models.Model):
         data = self.costs().order_by("cost__contract__vendor").values("cost__contract__vendor").distinct()
         return data
 
-    def finyear_percentage(self):
-        total_cost = UserGroup.objects.aggregate(models.Sum("predicted_cost"))["predicted_cost__sum"]
-        return round(self.predicted_cost / total_cost * 100, 2)
-
     def __str__(self):
         return self.name
 
