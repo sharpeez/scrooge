@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
-from scrooge.views import HomePageView, BillView
+from recoup.views import HomePageView, BillView
 
 admin.site.site_header = HomePageView.title
 admin.site.site_name = HomePageView.title

@@ -1,6 +1,7 @@
 from django.contrib import admin
 from reversion.admin import VersionAdmin
 from recoup import models
+from django.db.models import Sum
 
 class InlineBillAdmin(admin.TabularInline):
     model = models.Bill
@@ -23,10 +24,33 @@ class ITPlatformCostAdmin(admin.TabularInline):
     extra = 0
     ordering = ("-percentage",)
 
+class AllocatedListFilter(admin.SimpleListFilter):
+    title = "Allocation"
+    parameter_name = "allocated"
+
+    def lookups(self, request, model_admin):
+        return (
+            ('0', 'None'),
+            ('lt_100', 'Partially'),
+            ('100', '100%'),
+            ('gt_100', 'Over allocated')
+        )
+    
+    def queryset(self, request, queryset):
+        qs = queryset.annotate(Sum("cost_items__percentage"))
+        if self.value() == "0":
+            return qs.exclude(cost_items__percentage__gt = 0)
+        elif self.value() == "lt_100":
+            return qs.filter(cost_items__percentage__sum__lt = 100, cost_items__percentage__sum__gt = 0)
+        elif self.value() == "100":
+            return qs.filter(cost_items__percentage__sum = 100)
+        elif self.value() == "gt_100":
+            return qs.filter(cost_items__percentage__sum__gt = 100)
+
 @admin.register(models.Bill)
 class BillAdmin(VersionAdmin):
     list_display = ["__str__", "contract", "quantity", "cost", "cost_estimate", "allocated", "active"]
-    list_filter = ["year", "allocated", "active"]
+    list_filter = ["year", AllocatedListFilter, "active"]
     search_fields = ["name", "description", "comment", "contract__vendor", "contract__reference", "contract__brand"]
     inlines = [EndUserCostAdmin, ITPlatformCostAdmin]
 
@@ -42,7 +66,7 @@ class PlatformAdmin(VersionAdmin):
 
 @admin.register(models.Division)
 class DivisionAdmin(VersionAdmin):
-    list_display = ["__str__", "cost", "cost_estimate", "cost_percentage", "cost_estimate_percentage"]
+    list_display = ["__str__", "user_count", "cc_count", "system_count", "cost", "cost_estimate", "cost_percentage", "cost_estimate_percentage"]
 
 @admin.register(models.ServicePool)
 class ServicePoolAdmin(VersionAdmin):

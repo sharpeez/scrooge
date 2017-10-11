@@ -82,15 +82,14 @@ class Bill(models.Model):
     description = models.TextField(default="N/A")
     comment = models.TextField(blank=True, default="")
     quantity = models.CharField(max_length=320, default="1")
-    year = models.ForeignKey(FinancialYear, default=FinancialYear.objects.first)
+    year = models.ForeignKey(FinancialYear)
     renewal_date = models.DateField(null=True, blank=True)
     cost = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     cost_estimate = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    allocated = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=[MinValueValidator(0), MaxValueValidator(100)], editable=False)
     active = models.BooleanField(default=True)
 
-    def pre_save(self):
-        self.allocated = field_sum(self.cost_items.all(), "percentage") or 0
+    def allocated(self):
+        return field_sum(self.cost_items.all(), "percentage") or 0
 
     def post_save(self):
         update_costs(self.contract.bill_set.filter(active=True), self.contract)
