@@ -7,6 +7,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.core.exceptions import ValidationError
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
+from django.utils.html import format_html
 
 def field_sum(queryset, fieldname):
     return queryset.aggregate(models.Sum(fieldname))["{}__sum".format(fieldname)]
@@ -141,6 +142,12 @@ class Division(CostSummary):
     cc_count = models.PositiveIntegerField(default=0)
     system_count = models.PositiveIntegerField(default=0, editable=False)
 
+    def systems_by_cc(self):
+        return self.itsystem_set.order_by("cost_centre", "name")
+
+    def bill(self):
+        return format_html('<a href="/bill?division={}" target="_blank">Bill</a>', self.pk)
+
 class EndUserService(CostSummary):
     """
     Grouping used to simplify linkages of costs to divisions, and for reporting
@@ -158,14 +165,6 @@ class EndUserCost(Cost):
     def post_save(self):
         update_costs(self.service.endusercost_set.all(), self.service)
 
-class ITSystem(CostSummary):
-    """
-    A system owned by a division, that shares the cost of a set of service groups
-    """
-    system_id = models.CharField(max_length=4, unique=True)
-    name = models.CharField(max_length=320)
-    division = models.ForeignKey(Division)
-
 class Platform(CostSummary):
     """
     Platform or Infrastructure IT systems depend on
@@ -179,6 +178,19 @@ class Platform(CostSummary):
         abstract = False
         verbose_name = "IT Platform"
 
+class ITSystem(CostSummary):
+    """
+    A system owned by a division, that shares the cost of a set of service groups
+    """
+    system_id = models.CharField(max_length=4, unique=True)
+    cost_centre = models.CharField(max_length=24)
+    name = models.CharField(max_length=320)
+    division = models.ForeignKey(Division)
+    depends_on = models.ManyToManyField(Platform, through="SystemDependency")
+
+    def depends_on_display(self):
+        return ", ".join(str(p) for p in self.depends_on.all())
+
 class SystemDependency(CostSummary):
     """
     Links a system to the platforms it uses
@@ -189,6 +201,10 @@ class SystemDependency(CostSummary):
 
     def post_save(self):
         self.platform.system_count = self.platform.systemdependency_set.count()
+        self.platform.save()
+
+    def __str__(self):
+        return "{} depends on {}".format(self.system, self.platform)
 
     class Meta:
         unique_together = (("system", "platform"),)

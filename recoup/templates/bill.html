@@ -122,10 +122,10 @@
                             </td>
                             
                             <td>
-                                {{ usergroup.name }}<br>
-                                {{ usergroup.cost_centres }} Cost Centres<br>
-                                {{ usergroup.user_count }} Users<br>
-                                {{ usergroup.it_systems }} IT Systems
+                                {{ division.name }}<br>
+                                {{ division.cc_count }} Cost Centres<br>
+                                {{ division.user_count }} Users<br>
+                                {{ division.system_count }} IT Systems
                             </td>
                         </tr>
                     </table>
@@ -141,15 +141,15 @@
                     End user cost estimate
                 </td>
             </tr>
-            {% for vendor in usergroup.vendors %}
+            {% for service in division.enduserservice_set.all %}
             
             <tr class="item">
                 <td>
-                    {{ vendor }}
+                    {{ service }}
                 </td>
                 
                 <td>
-                    {{ vendor }}
+                    {{ service.cost_estimate }}
                 </td>
             </tr>
 
@@ -173,25 +173,19 @@
                 </td>
             </tr>
             
+            {% for system in division.systems_by_cc %}
+            
             <tr class="item">
                 <td>
-                    Website design
+                    {{ system.cost_centre }} - {{ system }} ({{ system.system_id }})
                 </td>
                 
                 <td>
-                    $300.00
+                    {{ system.cost_estimate }}
                 </td>
             </tr>
-            
-            <tr class="item last">
-                <td>
-                    Domain name (1 year)
-                </td>
-                
-                <td>
-                    $10.00
-                </td>
-            </tr>
+
+            {% endfor %}
             
             <tr class="subtotal">
                 <td></td>

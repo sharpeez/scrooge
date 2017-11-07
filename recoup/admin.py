@@ -59,14 +59,19 @@ class EndUserServiceAdmin(VersionAdmin):
     list_display = ["__str__", "cost", "cost_estimate", "cost_percentage", "cost_estimate_percentage"]
     inlines = [EndUserCostAdmin]
 
+class SystemDependencyAdmin(admin.TabularInline):
+    model = models.SystemDependency
+    extra = 0
+    fields = ["platform", "weighting"]
+
 @admin.register(models.Platform)
 class PlatformAdmin(VersionAdmin):
-    list_display = ["__str__", "cost", "cost_estimate", "cost_percentage", "cost_estimate_percentage"]
-    inlines = [ITPlatformCostAdmin]
+    list_display = ["__str__", "system_count", "cost", "cost_estimate", "cost_percentage", "cost_estimate_percentage"]
+    inlines = [ITPlatformCostAdmin, SystemDependencyAdmin]
 
 @admin.register(models.Division)
 class DivisionAdmin(VersionAdmin):
-    list_display = ["__str__", "user_count", "cc_count", "system_count", "cost", "cost_estimate", "cost_percentage", "cost_estimate_percentage"]
+    list_display = ["__str__", "user_count", "cc_count", "system_count", "bill", "cost", "cost_estimate", "cost_percentage", "cost_estimate_percentage"]
 
 @admin.register(models.ServicePool)
 class ServicePoolAdmin(VersionAdmin):
@@ -79,7 +84,10 @@ class ServicePoolAdmin(VersionAdmin):
     def has_add_permission(self, request):
         return False
 
-admin.site.register([
-    models.SystemDependency,
-    models.ITSystem,
-])
+@admin.register(models.ITSystem)
+class ITSystemAdmin(VersionAdmin):
+    list_display = ["system_id", "name", "depends_on_display", "cost_centre", "division"]
+    list_filter = ["division"]
+    search_fields = ["name", "system_id", "cost_centre"]
+    inlines = [SystemDependencyAdmin]
+
