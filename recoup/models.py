@@ -10,43 +10,50 @@ from django.dispatch import receiver
 from django.utils.html import format_html
 
 def field_sum(queryset, fieldname):
-    return queryset.aggregate(models.Sum(fieldname))["{}__sum".format(fieldname)]
-
-def update_costs(queryset, instance):
-    """
-    Convenience method to update a parent objects costs from a queryset of children
-    """
-    instance.cost = field_sum(queryset, "cost")
-    instance.cost_estimate = field_sum(queryset, "cost_estimate")
-    instance.save()
+    return queryset.aggregate(models.Sum(fieldname))["{}__sum".format(fieldname)] or Decimal(0)
 
 class CostSummary(models.Model):
     """
     Maintains some fields for summarising costs for an object
     """
-    cost = models.DecimalField(max_digits=12, decimal_places=2, default=0, editable=False)
-    cost_estimate = models.DecimalField(max_digits=12, decimal_places=2, default=0, editable=False)
-
     def __str__(self):
         return self.name
+
+    def get_cost_queryset(self):
+        """
+        Override with appropriate filtering across bills or costs
+        """
+        return self.__class__.objects.none()
+
+    def cost(self):
+        return field_sum(self.get_cost_queryset(), "cost")
+
+    def cost_estimate(self):
+        return field_sum(self.get_cost_queryset(), "cost_estimate")
 
     @property
     def year(self):
         return FinancialYear.objects.first()
 
     def cost_percentage(self):
-        if self.year.cost == Decimal(0):
+        year_cost = self.year.cost()
+        if year_cost == Decimal(0):
             return 0
-        return round(self.cost / self.year.cost * 100, 2)
+        return round(self.cost() / year_cost * 100, 2)
+
+    cost_percentage.short_description = "Cost/FY %"
 
     def cost_estimate_percentage(self):
-        if self.year.cost_estimate == Decimal(0):
+        year_cost_est = self.year.cost_estimate()
+        if year_cost_est == Decimal(0):
             return 0
-        return round(self.cost_estimate / self.year.cost_estimate * 100, 2)
+        return round(self.cost_estimate() / year_cost_est * 100, 2)
+
+    cost_estimate_percentage.short_description = "Estimate/FY %"
 
     class Meta:
         abstract = True
-        ordering = ("-cost_estimate",)
+        ordering = ('name',)
 
 class Contract(CostSummary):
     vendor = models.CharField(max_length=320)
@@ -57,8 +64,14 @@ class Contract(CostSummary):
     end = models.DateField(null=True, blank=True)
     active = models.BooleanField(default=True)
 
+    def get_cost_queryset(self):
+        return self.bill_set.filter(active=True)
+
     def __str__(self):
         return "{} ({})".format(self.vendor, self.reference)
+
+    class Meta:
+        ordering = ('vendor',)
 
 class FinancialYear(CostSummary):
     """
@@ -67,6 +80,9 @@ class FinancialYear(CostSummary):
     """
     start = models.DateField()
     end = models.DateField()
+
+    def get_cost_queryset(self):
+        return self.bill_set.all()
 
     def __str__(self):
         return "{}/{}".format(self.start.year, self.end.year)
@@ -93,15 +109,12 @@ class Bill(models.Model):
         return field_sum(self.cost_items.all(), "percentage") or 0
 
     def post_save(self):
-        update_costs(self.contract.bill_set.filter(active=True), self.contract)
-        update_costs(self.year.bill_set.filter(active=True), self.year)
         costs = self.cost_items.all()
-        if field_sum(costs, "cost") != self.cost or field_sum(costs, "cost_estimate") != self.cost_estimate:
-            # recalculate child cost values
-            for cost in EndUserCost.objects.filter(bill=self):
-                cost.save()
-            for cost in ITPlatformCost.objects.filter(bill=self):
-                cost.save()
+        # recalculate child cost values
+        for cost in EndUserCost.objects.filter(bill=self):
+            cost.save()
+        for cost in ITPlatformCost.objects.filter(bill=self):
+            cost.save()
 
     def __str__(self):
         return self.name
@@ -120,15 +133,14 @@ class Cost(CostSummary):
     bill = models.ForeignKey(Bill, related_name="cost_items")
     percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=[MinValueValidator(0), MaxValueValidator(100)])
     service_pool = models.ForeignKey(ServicePool, related_name="cost_items")
+    cost = models.DecimalField(max_digits=12, decimal_places=2, default=0, editable=False)
+    cost_estimate = models.DecimalField(max_digits=12, decimal_places=2, default=0, editable=False)
 
     def pre_save(self):
         if not self.bill.active:
             self.cost, self.cost_estimate = 0, 0
         self.cost = self.bill.cost * self.percentage / Decimal(100)
         self.cost_estimate = self.bill.cost_estimate * self.percentage / Decimal(100)
-
-    def post_save(self):
-        update_costs(self.service_pool.cost_items.all(), self.service_pool)
 
     class Meta:
         ordering = ("-percentage",)
@@ -142,6 +154,24 @@ class Division(CostSummary):
     cc_count = models.PositiveIntegerField(default=0)
     system_count = models.PositiveIntegerField(default=0, editable=False)
 
+    def enduser_cost(self):
+        total = Decimal(0)
+        for service in self.enduserservice_set.all():
+            total += round(Decimal(self.user_count) / Decimal(service.total_user_count()) * service.cost(), 2)
+        return total
+    
+    def enduser_estimate(self):
+        total = Decimal(0)
+        for service in self.enduserservice_set.all():
+            total += round(Decimal(self.user_count) / Decimal(service.total_user_count()) * service.cost_estimate(), 2)
+        return total
+
+    def cost(self):
+        return self.enduser_cost()
+
+    def cost_estimate(self):
+        return self.enduser_estimate()
+
     def systems_by_cc(self):
         return self.itsystem_set.order_by("cost_centre", "name")
 
@@ -154,16 +184,18 @@ class EndUserService(CostSummary):
     """
     name = models.CharField(max_length=320)
     divisions = models.ManyToManyField(Division)
-    total_user_count = models.PositiveIntegerField(default=0, editable=False)
+
+    def total_user_count(self):
+        return field_sum(self.divisions, "user_count")
+
+    def get_cost_queryset(self):
+        return self.endusercost_set.all()
 
 class EndUserCost(Cost):
     """
     Broken down cost for end users
     """
     service = models.ForeignKey(EndUserService)
-
-    def post_save(self):
-        update_costs(self.service.endusercost_set.all(), self.service)
 
 class Platform(CostSummary):
     """
@@ -173,6 +205,9 @@ class Platform(CostSummary):
     """
     name = models.CharField(max_length=320)
     system_count = models.PositiveIntegerField(default=0, editable=False)
+
+    def get_cost_queryset(self):
+        return self.itplatformcost_set.all()
 
     class Meta(CostSummary.Meta):
         abstract = False
@@ -214,9 +249,6 @@ class ITPlatformCost(Cost):
     Broken down cost for IT component
     """
     platform = models.ForeignKey(Platform)
-
-    def post_save(self):
-        update_costs(self.platform.itplatformcost_set.all(), self.platform)
 
 @receiver(post_save)
 def post_save_hook(sender, instance, **kwargs):

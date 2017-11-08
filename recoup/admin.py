@@ -56,7 +56,7 @@ class BillAdmin(VersionAdmin):
 
 @admin.register(models.EndUserService)
 class EndUserServiceAdmin(VersionAdmin):
-    list_display = ["__str__", "cost", "cost_estimate", "cost_percentage", "cost_estimate_percentage"]
+    list_display = ["__str__", "total_user_count", "cost", "cost_estimate", "cost_percentage", "cost_estimate_percentage"]
     inlines = [EndUserCostAdmin]
 
 class SystemDependencyAdmin(admin.TabularInline):

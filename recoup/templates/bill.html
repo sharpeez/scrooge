@@ -141,7 +141,7 @@
                     End user cost estimate
                 </td>
             </tr>
-            {% for service in division.enduserservice_set.all %}
+            {% for service in services %}
             
             <tr class="item">
                 <td>
@@ -149,7 +149,7 @@
                 </td>
                 
                 <td>
-                    {{ service.cost_estimate }}
+                    {{ service.cost_estimate_display }}
                 </td>
             </tr>
 
@@ -159,7 +159,7 @@
                 <td></td>
                 
                 <td>
-                   End user subtotal: ...
+                   End user subtotal: {{ division.enduser_estimate }}
                 </td>
             </tr>
 
@@ -181,7 +181,7 @@
                 </td>
                 
                 <td>
-                    {{ system.cost_estimate }}
+                    TODO
                 </td>
             </tr>
 
@@ -191,7 +191,7 @@
                 <td></td>
                 
                 <td>
-                   System subtotal: $385.00
+                   System subtotal: TODO
                 </td>
             </tr>
             <tr class="total">
