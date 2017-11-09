@@ -154,7 +154,7 @@ class Division(CostSummary):
     cc_count = models.PositiveIntegerField(default=0)
 
     def system_count(self):
-        return self.itsystem_set.count()
+        return self.systems_by_cc().count()
 
     def enduser_cost(self):
         total = Decimal(0)
@@ -181,7 +181,7 @@ class Division(CostSummary):
         return self.enduser_estimate() + self.system_cost_estimate()
 
     def systems_by_cc(self):
-        return self.itsystem_set.order_by("cost_centre", "name")
+        return self.itsystem_set.filter(systemdependency__isnull=False).order_by("cost_centre", "name").distinct()
 
     def bill(self):
         return format_html('<a href="/bill?division={}" target="_blank">Bill</a>', self.pk)

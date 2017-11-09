@@ -87,7 +87,7 @@ class ServicePoolAdmin(VersionAdmin):
 @admin.register(models.ITSystem)
 class ITSystemAdmin(VersionAdmin):
     list_display = ["system_id", "name", "depends_on_display", "cost_centre", "division", "cost", "cost_estimate"]
-    list_filter = ["division"]
+    list_filter = ["division", "depends_on"]
     search_fields = ["name", "system_id", "cost_centre"]
     inlines = [SystemDependencyAdmin]
 
