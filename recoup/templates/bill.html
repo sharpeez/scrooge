@@ -131,15 +131,16 @@
                     </table>
                 </td>
             </tr>
+
+            <tr class="information">
+                <td colspan="4">
+                    <h4>End-User Shared Cost (End-User COE, Telecommunication COE &amp; Security COE)</h4>
+                </td>
+            </tr>
             
             <tr class="heading">
-                <td>
-                    Vendor
-                </td>
-                
-                <td>
-                    End user cost estimate
-                </td>
+                <td>End User Service</td>
+                <td>Cost estimate</td>
             </tr>
             {% for service in services %}
             
@@ -149,7 +150,7 @@
                 </td>
                 
                 <td>
-                    {{ service.cost_estimate_display }}
+                    ${{ service.cost_estimate_display }}
                 </td>
             </tr>
 
@@ -159,7 +160,13 @@
                 <td></td>
                 
                 <td>
-                   End user subtotal: {{ division.enduser_estimate }}
+                   End user subtotal: ${{ division.enduser_estimate }}
+                </td>
+            </tr>
+
+            <tr class="information">
+                <td colspan="4">
+                    <h4>Individual IT System Cost (Digital information COE &amp; Security COE)</h4>
                 </td>
             </tr>
 
@@ -169,7 +176,7 @@
                 </td>
                 
                 <td>
-                    System cost estimate
+                    Cost estimate
                 </td>
             </tr>
             
@@ -181,7 +188,7 @@
                 </td>
                 
                 <td>
-                    TODO
+                    ${{ system.cost_estimate }}
                 </td>
             </tr>
 
@@ -191,14 +198,14 @@
                 <td></td>
                 
                 <td>
-                   System subtotal: TODO
+                   System subtotal: ${{ division.system_cost_estimate }}
                 </td>
             </tr>
             <tr class="total">
                 <td></td>
                 
                 <td>
-                   Total: $780.00
+                   Total: ${{ division.cost_estimate }}
                 </td>
             </tr>
         </table>

@@ -10,7 +10,7 @@ from django.dispatch import receiver
 from django.utils.html import format_html
 
 def field_sum(queryset, fieldname):
-    return queryset.aggregate(models.Sum(fieldname))["{}__sum".format(fieldname)] or Decimal(0)
+    return queryset.aggregate(models.Sum(fieldname))["{}__sum".format(fieldname)]
 
 class CostSummary(models.Model):
     """
@@ -26,10 +26,10 @@ class CostSummary(models.Model):
         return self.__class__.objects.none()
 
     def cost(self):
-        return field_sum(self.get_cost_queryset(), "cost")
+        return field_sum(self.get_cost_queryset(), "cost") or Decimal(0)
 
     def cost_estimate(self):
-        return field_sum(self.get_cost_queryset(), "cost_estimate")
+        return field_sum(self.get_cost_queryset(), "cost_estimate") or Decimal(0)
 
     @property
     def year(self):
@@ -152,7 +152,9 @@ class Division(CostSummary):
     name = models.CharField(max_length=320)
     user_count = models.PositiveIntegerField(default=0)
     cc_count = models.PositiveIntegerField(default=0)
-    system_count = models.PositiveIntegerField(default=0, editable=False)
+
+    def system_count(self):
+        return self.itsystem_set.count()
 
     def enduser_cost(self):
         total = Decimal(0)
@@ -166,11 +168,17 @@ class Division(CostSummary):
             total += round(Decimal(self.user_count) / Decimal(service.total_user_count()) * service.cost_estimate(), 2)
         return total
 
+    def system_cost(self):
+        return sum(system.cost() for system in self.itsystem_set.all())
+
+    def system_cost_estimate(self):
+        return sum(system.cost_estimate() for system in self.itsystem_set.all())
+
     def cost(self):
-        return self.enduser_cost()
+        return self.enduser_cost() + self.system_cost()
 
     def cost_estimate(self):
-        return self.enduser_estimate()
+        return self.enduser_estimate() + self.system_cost_estimate()
 
     def systems_by_cc(self):
         return self.itsystem_set.order_by("cost_centre", "name")
@@ -204,7 +212,12 @@ class Platform(CostSummary):
     Note a system may have to have its own unique systemdependency
     """
     name = models.CharField(max_length=320)
-    system_count = models.PositiveIntegerField(default=0, editable=False)
+
+    def system_count(self):
+        return self.systemdependency_set.count()
+
+    def system_weight_total(self):
+        return field_sum(self.systemdependency_set, "weighting")
 
     def get_cost_queryset(self):
         return self.itplatformcost_set.all()
@@ -222,6 +235,18 @@ class ITSystem(CostSummary):
     name = models.CharField(max_length=320)
     division = models.ForeignKey(Division)
     depends_on = models.ManyToManyField(Platform, through="SystemDependency")
+
+    def cost(self):
+        total = Decimal(0)
+        for dep in self.systemdependency_set.all():
+            total += dep.platform.cost() * Decimal(dep.weighting / dep.platform.system_weight_total())
+        return round(total, 2)
+
+    def cost_estimate(self):
+        total = Decimal(0)
+        for dep in self.systemdependency_set.all():
+            total += dep.platform.cost_estimate() * Decimal(dep.weighting / dep.platform.system_weight_total())
+        return round(total, 2)
 
     def depends_on_display(self):
         return ", ".join(str(p) for p in self.depends_on.all())

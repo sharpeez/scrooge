@@ -66,7 +66,7 @@ class SystemDependencyAdmin(admin.TabularInline):
 
 @admin.register(models.Platform)
 class PlatformAdmin(VersionAdmin):
-    list_display = ["__str__", "system_count", "cost", "cost_estimate", "cost_percentage", "cost_estimate_percentage"]
+    list_display = ["__str__", "system_count", "system_weight_total", "cost", "cost_estimate", "cost_percentage", "cost_estimate_percentage"]
     inlines = [ITPlatformCostAdmin, SystemDependencyAdmin]
 
 @admin.register(models.Division)
@@ -86,7 +86,7 @@ class ServicePoolAdmin(VersionAdmin):
 
 @admin.register(models.ITSystem)
 class ITSystemAdmin(VersionAdmin):
-    list_display = ["system_id", "name", "depends_on_display", "cost_centre", "division"]
+    list_display = ["system_id", "name", "depends_on_display", "cost_centre", "division", "cost", "cost_estimate"]
     list_filter = ["division"]
     search_fields = ["name", "system_id", "cost_centre"]
     inlines = [SystemDependencyAdmin]
