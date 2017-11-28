@@ -1,3 +1,4 @@
+{% load humanize %}
 <!doctype html>
 <html>
 <head>
@@ -124,7 +125,7 @@
                             <td>
                                 {{ division.name }}<br>
                                 {{ division.cc_count }} Cost Centres<br>
-                                {{ division.user_count }} Users<br>
+                                {{ division.user_count|intcomma }} Users<br>
                                 {{ division.system_count }} COE IT Systems
                             </td>
                         </tr>
@@ -150,7 +151,7 @@
                 </td>
                 
                 <td>
-                    ${{ service.cost_estimate_display }}
+                    ${{ service.cost_estimate_display|intcomma }}
                 </td>
             </tr>
 
@@ -160,7 +161,7 @@
                 <td></td>
                 
                 <td>
-                   End user subtotal: ${{ division.enduser_estimate }}
+                   End user subtotal: ${{ division.enduser_estimate|intcomma }}
                 </td>
             </tr>
 
@@ -188,7 +189,7 @@
                 </td>
                 
                 <td>
-                    ${{ system.cost_estimate }}
+                    ${{ system.cost_estimate|intcomma }}
                 </td>
             </tr>
 
@@ -198,14 +199,14 @@
                 <td></td>
                 
                 <td>
-                   System subtotal: ${{ division.system_cost_estimate }}
+                   System subtotal: ${{ division.system_cost_estimate|intcomma }}
                 </td>
             </tr>
             <tr class="total">
                 <td></td>
                 
                 <td>
-                   Total: ${{ division.cost_estimate }}
+                   Total: ${{ division.cost_estimate|intcomma }}
                 </td>
             </tr>
         </table>

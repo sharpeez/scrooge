@@ -15,6 +15,9 @@ class HomePageView(TemplateView):
         context = super(HomePageView, self).get_context_data(**kwargs)
         context["site_header"], context["site_title"] = self.title, self.title
         context["year"] = models.FinancialYear.objects.first()
+        context["enduser_cost"] = round(sum([e.cost_estimate() for e in models.EndUserService.objects.all()]), 2)
+        context["platform_cost"] = round(sum([p.cost_estimate() for p in models.Platform.objects.all()]), 2)
+        context["unallocated_cost"] = context["year"].cost_estimate() - context["enduser_cost"] - context["platform_cost"]
         return context
 
 class BillView(TemplateView):
@@ -24,12 +27,13 @@ class BillView(TemplateView):
         context = super(BillView, self).get_context_data(**kwargs)
         division = models.Division.objects.get(pk=int(self.request.GET["division"]))
         services = division.enduserservice_set.all()
+
         for service in services:
             service.cost_estimate_display = round(Decimal(division.user_count) / Decimal(service.total_user_count()) * service.cost_estimate(), 2)
         context.update({
             "division": division,
             "services": services,
-            "created": timezone.now().date,
+            "created": timezone.now().date
         })
         return context
     
