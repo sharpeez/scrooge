@@ -5,4 +5,4 @@ gevent==1.1.2
 uWSGI==2.0.15
 django-reversion==2.0.10
 django-import-export==0.5.1
-django-queryset-csv==1.0.0
+xlsxwriter==1.0.2

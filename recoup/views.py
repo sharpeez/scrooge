@@ -1,9 +1,9 @@
 from django.db.models import Sum
 from django.views.generic.base import TemplateView
+from django.http import HttpResponse
 from django.utils import timezone
 from decimal import Decimal
-
-from djqscsv import render_to_csv_response
+import io
 
 from recoup import models
 
@@ -37,3 +37,10 @@ class BillView(TemplateView):
         })
         return context
     
+def DUCReport(request):
+    response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=DUCReport.xlsx'
+    workbook = xlsxwriter.Workbook(response, {'in_memory': True})
+    workbook.close()
+    return response
+
