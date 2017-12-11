@@ -12,6 +12,7 @@ venv/
 gmon.out
 .sass-cache/
 .vscode/tags
+.vscode/
 
 # Database/fixture dumps
 *.pgdump

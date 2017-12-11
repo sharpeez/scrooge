@@ -151,7 +151,9 @@ class Division(CostSummary):
     """
     name = models.CharField(max_length=320)
     user_count = models.PositiveIntegerField(default=0)
-    cc_count = models.PositiveIntegerField(default=0)
+
+    def cc_count(self):
+        return self.costcentre_set.count()
 
     def system_count(self):
         return self.systems_by_cc().count()
@@ -185,6 +187,30 @@ class Division(CostSummary):
 
     def bill(self):
         return format_html('<a href="/bill?division={}" target="_blank">Bill</a>', self.pk)
+
+    def user_count_percentage(self):
+        return round(self.user_count / field_sum(Division.objects.all(), 'user_count') * 100, 2)
+
+    class Meta:
+        ordering = ('-user_count',)
+
+class CostCentre(models.Model):
+    name = models.CharField(max_length=128, unique=True)
+    code = models.CharField(max_length=16, unique=True)
+    division = models.ForeignKey(Division)
+    user_count = models.PositiveIntegerField(default=0)
+
+    def user_count_percentage(self):
+        return round(self.user_count / field_sum(Division.objects.all(), 'user_count') * 100, 2)
+
+    def post_save(self):
+        self.division.user_count = field_sum(self.division.costcentre_set.all(), "user_count")
+
+    def __str__(self):
+        return self.code
+
+    class Meta:
+        ordering = ('-division__user_count', '-user_count')
 
 class EndUserService(CostSummary):
     """

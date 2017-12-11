@@ -73,6 +73,10 @@ class PlatformAdmin(VersionAdmin):
 class DivisionAdmin(VersionAdmin):
     list_display = ["__str__", "user_count", "cc_count", "system_count", "bill", "cost", "cost_estimate", "cost_percentage", "cost_estimate_percentage"]
 
+@admin.register(models.CostCentre)
+class CostCentreAdmin(VersionAdmin):
+    list_display = ["__str__", "name", "division", "user_count"]
+
 @admin.register(models.ServicePool)
 class ServicePoolAdmin(VersionAdmin):
     list_display = ["__str__", "cost", "cost_estimate", "cost_percentage", "cost_estimate_percentage"]
