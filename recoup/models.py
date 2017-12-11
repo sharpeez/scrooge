@@ -82,7 +82,7 @@ class FinancialYear(CostSummary):
     end = models.DateField()
 
     def get_cost_queryset(self):
-        return self.bill_set.all()
+        return self.bill_set.filter(active=True)
 
     def __str__(self):
         return "{}/{}".format(self.start.year, self.end.year)
@@ -197,7 +197,7 @@ class EndUserService(CostSummary):
         return field_sum(self.divisions, "user_count")
 
     def get_cost_queryset(self):
-        return self.endusercost_set.all()
+        return self.endusercost_set.filter()
 
 class EndUserCost(Cost):
     """

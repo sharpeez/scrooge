@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 from decimal import Decimal
 import io
+import xlsxwriter
 
 from recoup import models
 
@@ -38,7 +39,7 @@ class BillView(TemplateView):
         return context
     
 def DUCReport(request):
-    response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment; filename=DUCReport.xlsx'
     workbook = xlsxwriter.Workbook(response, {'in_memory': True})
     workbook.close()
