@@ -277,6 +277,12 @@ class ITSystem(CostSummary):
     def depends_on_display(self):
         return ", ".join(str(p) for p in self.depends_on.all())
 
+    def __str__(self):
+        return "{} (#{})".format(self.name, self.system_id)
+
+    class Meta(CostSummary.Meta):
+        ordering = ('cost_centre', 'name')
+
 class SystemDependency(CostSummary):
     """
     Links a system to the platforms it uses
