@@ -76,6 +76,7 @@ class DivisionAdmin(VersionAdmin):
 @admin.register(models.CostCentre)
 class CostCentreAdmin(VersionAdmin):
     list_display = ["__str__", "name", "division", "user_count"]
+    list_editable = ["user_count"]
 
 @admin.register(models.ServicePool)
 class ServicePoolAdmin(VersionAdmin):

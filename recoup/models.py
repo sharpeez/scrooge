@@ -205,6 +205,7 @@ class CostCentre(models.Model):
 
     def post_save(self):
         self.division.user_count = field_sum(self.division.costcentre_set.all(), "user_count")
+        self.division.save()
 
     def __str__(self):
         return self.code
