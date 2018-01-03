@@ -82,7 +82,7 @@ def DUCReport(request):
             itsystems.write_row(row, 0, [division.name, "Subtotal", division.system_cost_estimate() , "=C{}/C2".format(row+1)])
             itsystems.set_row(row, None, bold)
             row += 1
-            for system in division.itsystem_set.filter(depends_on__isnull=False):
+            for system in division.itsystem_set.filter(depends_on__isnull=False).distinct():
                 itsystems.write_row(row, 0, [system.cost_centre, system.__str__(), system.cost_estimate(), "=C{}/C2".format(row+1)])
                 row += 1
         itsystems.set_column('A:B', 40)
