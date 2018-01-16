@@ -75,7 +75,7 @@ class DivisionAdmin(VersionAdmin):
 
 @admin.register(models.CostCentre)
 class CostCentreAdmin(VersionAdmin):
-    list_display = ["__str__", "name", "division", "user_count"]
+    list_display = ["__str__", "name", "division", "user_count", "system_count", "system_cost", "system_cost_estimate"]
     list_editable = ["user_count"]
 
 @admin.register(models.ServicePool)
@@ -93,6 +93,6 @@ class ServicePoolAdmin(VersionAdmin):
 class ITSystemAdmin(VersionAdmin):
     list_display = ["system_id", "name", "depends_on_display", "cost_centre", "division", "cost", "cost_estimate"]
     list_filter = ["division", "depends_on"]
-    search_fields = ["name", "system_id", "cost_centre"]
+    search_fields = ["name", "system_id", "cost_centre__name"]
     inlines = [SystemDependencyAdmin]
 

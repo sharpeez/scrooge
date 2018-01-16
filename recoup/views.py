@@ -83,7 +83,7 @@ def DUCReport(request):
             itsystems.set_row(row, None, bold)
             row += 1
             for system in division.itsystem_set.filter(depends_on__isnull=False).distinct():
-                itsystems.write_row(row, 0, [system.cost_centre, system.__str__(), system.cost_estimate(), "=C{}/C2".format(row+1)])
+                itsystems.write_row(row, 0, [system.cost_centre.name, system.__str__(), system.cost_estimate(), "=C{}/C2".format(row+1)])
                 row += 1
         itsystems.set_column('A:B', 40)
         itsystems.set_column('C:C', 20, money)
@@ -100,7 +100,7 @@ def DUCReport(request):
             divrow = row
             row += 1
             for cc in division.costcentre_set.all():
-                invoice.write_row(row, 0, [cc.name, cc.user_count, "=B{}*C{}/B{}".format(row+1, divrow+1, divrow+1), "=B{}*D{}/B{}".format(row+1, divrow+1, divrow+1), "=SUM(C{},D{})".format(row+1, row+1)])
+                invoice.write_row(row, 0, [cc.name, cc.user_count, "=B{}*C{}/B{}".format(row+1, divrow+1, divrow+1), cc.system_cost_estimate(), "=SUM(C{},D{})".format(row+1, row+1)])
                 row += 1
         invoice.set_column('A:A', 30)
         invoice.set_column('B:B', 20)
