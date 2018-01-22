@@ -225,7 +225,7 @@ class CostCentre(models.Model):
         return self.code
 
     class Meta:
-        ordering = ('-division__user_count', '-user_count')
+        ordering = ('name',)
 
 class EndUserService(CostSummary):
     """
@@ -291,6 +291,9 @@ class ITSystem(CostSummary):
 
     def depends_on_display(self):
         return ", ".join(str(p) for p in self.depends_on.all())
+
+    def pre_save(self):
+        self.division = self.cost_centre.division
 
     def __str__(self):
         return "{} (#{})".format(self.name, self.system_id)
