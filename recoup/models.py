@@ -82,7 +82,7 @@ class FinancialYear(CostSummary):
     end = models.DateField()
 
     def get_cost_queryset(self):
-        return self.bill_set.all()
+        return self.bill_set.filter(active=True)
 
     def __str__(self):
         return "{}/{}".format(self.start.year, self.end.year)
@@ -151,7 +151,10 @@ class Division(CostSummary):
     """
     name = models.CharField(max_length=320)
     user_count = models.PositiveIntegerField(default=0)
-    cc_count = models.PositiveIntegerField(default=0)
+    position = models.PositiveIntegerField(unique=True)
+
+    def cc_count(self):
+        return self.costcentre_set.count()
 
     def system_count(self):
         return self.systems_by_cc().count()
@@ -169,10 +172,10 @@ class Division(CostSummary):
         return total
 
     def system_cost(self):
-        return sum(system.cost() for system in self.itsystem_set.all())
+        return sum(system.cost() for system in self.systems_by_cc().all())
 
     def system_cost_estimate(self):
-        return sum(system.cost_estimate() for system in self.itsystem_set.all())
+        return sum(system.cost_estimate() for system in self.systems_by_cc().all())
 
     def cost(self):
         return self.enduser_cost() + self.system_cost()
@@ -186,6 +189,44 @@ class Division(CostSummary):
     def bill(self):
         return format_html('<a href="/bill?division={}" target="_blank">Bill</a>', self.pk)
 
+    def user_count_percentage(self):
+        return round(self.user_count / field_sum(Division.objects.all(), 'user_count') * 100, 2)
+
+    class Meta:
+        ordering = ('position',)
+
+class CostCentre(models.Model):
+    name = models.CharField(max_length=128, unique=True)
+    code = models.CharField(max_length=16, unique=True)
+    division = models.ForeignKey(Division)
+    user_count = models.PositiveIntegerField(default=0)
+
+    def systems(self):
+        return self.itsystem_set.filter(systemdependency__isnull=False).distinct()
+
+    def system_count(self):
+        return self.systems().count()
+
+    def system_cost(self):
+        return sum(system.cost() for system in self.systems())
+
+    def system_cost_estimate(self):
+        return sum(system.cost_estimate() for system in self.systems())
+
+    def user_count_percentage(self):
+        return round(self.user_count / field_sum(Division.objects.all(), 'user_count') * 100, 2)
+
+    def post_save(self):
+        self.division.user_count = field_sum(self.division.costcentre_set.all(), "user_count")
+        if self.division.user_count > 0:
+            self.division.save()
+
+    def __str__(self):
+        return self.code
+
+    class Meta:
+        ordering = ('name',)
+
 class EndUserService(CostSummary):
     """
     Grouping used to simplify linkages of costs to divisions, and for reporting
@@ -197,7 +238,7 @@ class EndUserService(CostSummary):
         return field_sum(self.divisions, "user_count")
 
     def get_cost_queryset(self):
-        return self.endusercost_set.all()
+        return self.endusercost_set.filter()
 
 class EndUserCost(Cost):
     """
@@ -231,7 +272,7 @@ class ITSystem(CostSummary):
     A system owned by a division, that shares the cost of a set of service groups
     """
     system_id = models.CharField(max_length=4, unique=True)
-    cost_centre = models.CharField(max_length=24)
+    cost_centre = models.ForeignKey(CostCentre, null=True)
     name = models.CharField(max_length=320)
     division = models.ForeignKey(Division)
     depends_on = models.ManyToManyField(Platform, through="SystemDependency")
@@ -250,6 +291,15 @@ class ITSystem(CostSummary):
 
     def depends_on_display(self):
         return ", ".join(str(p) for p in self.depends_on.all())
+
+    def pre_save(self):
+        self.division = self.cost_centre.division
+
+    def __str__(self):
+        return "{} (#{})".format(self.name, self.system_id)
+
+    class Meta(CostSummary.Meta):
+        ordering = ('cost_centre__name', 'name')
 
 class SystemDependency(CostSummary):
     """

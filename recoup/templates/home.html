@@ -1,11 +1,17 @@
 {% extends "admin/base_site.html" %}
+{% load humanize %}
 
 {% block breadcrumbs %}{% endblock %}
 
 {% block content %}
 <div id="content-main">
     <h2>Overview</h2>
-    Total cost for {{ year }}: {{ year.cost_estimate }} (actual: {{ year.cost }})<br>
+    Total cost for {{ year }}: ${{ year.cost_estimate|intcomma }} (actual: ${{ year.cost|intcomma }})<br>
+    <ul>
+        <li>End User Services: ${{ enduser_cost|intcomma }}</li>
+        <li>IT System Platforms: ${{ platform_cost|intcomma }}</li>
+        <li>Unallocated: ${{ unallocated_cost|intcomma }}</li>
+    </ul>
     Divisions (including bill previews): <a href="/admin/recoup/division">Divisions</a>
     <h2>Administration</h2>
     To work on the data for the cost reports, please visit <a href="/admin/recoup">/admin/recoup</a> (main section: <a href="/admin/recoup/bill">Bills</a>).
@@ -16,6 +22,6 @@
         <li><a href="/admin/recoup/platform">IT System Platforms</a></li>
     </ul>
     <h2>Reports</h2>
-    TODO
+    <a href="/reports/DUCReport.xlsx">DUCReport.xlsx</a>
 </div>
 {% endblock %}
