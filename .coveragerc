@@ -2,7 +2,8 @@
 omit =
     venv/*
     venv2/*
-    authome/migrations/*
-    authome/wsgi.py
-    authome/settings.py
+    recoup/migrations/
+    scrooge/migrations/
+    scrooge/wsgi.py
+    scrooge/settings.py
     manage.py

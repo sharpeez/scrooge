@@ -1,9 +1,7 @@
-sudo: false
 language: python
 cache: pip
 python:
     - "2.7"
-    - "3.4"
     - "3.5"
     - "3.6"
 addons:
@@ -17,10 +15,9 @@ env:
     global:
         - SECRET_KEY="SecretKeyForTravisCI"
         - DATABASE_URL="postgis://postgres@localhost:5432/travis_ci_test"
-        - AZUREAD_AUTHORITY="https://login.microsoftonline.com/thisisnotarealazureaudauthorityurl"
 sudo: true
 install:
-    - sudo apt-get install postgresql-9.4-postgis-2.3 postgis -y -q
+    - sudo apt-get install postgresql-9.4-postgis-2.3 -y -q
     - psql -U postgres -c "create extension postgis;"
     - pip install --upgrade setuptools
     - pip install -r requirements.txt
