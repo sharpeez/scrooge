@@ -37,7 +37,7 @@ class BillView(TemplateView):
             "created": timezone.now().date
         })
         return context
-    
+
 def DUCReport(request):
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment; filename=DUCReport.xlsx'
