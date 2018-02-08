@@ -45,23 +45,37 @@ def DUCReport(request):
 
     with xlsxwriter.Workbook(response, {'in_memory': True}) as workbook:
         bold = workbook.add_format({'bold': True})
-        money = workbook.add_format({'num_format': '$#,##0.00'})
+        bold_big_font = workbook.add_format({'bold': True})
+        bold_big_font.set_font_size(14)
+        bold_italic = workbook.add_format({'bold': True, 'italic': True})
         pct = workbook.add_format({'num_format': '0.00%'})
+        pct_bold = workbook.add_format({'num_format': '0.00%', 'bold': True})
+        pct_bold_italic = workbook.add_format({'num_format': '0.00%', 'bold': True, 'italic': True})
+        money = workbook.add_format({'num_format': '$#,##0.00'})
 
         # Computer user account worksheet
         staff = workbook.add_worksheet("IT User Accounts")
         staff.write_row("A1", ("Division / Cost Centre", "Computer User Accounts", "% Total"))
-        staff.set_row(0, None, bold)
-        row = 1
+        staff.set_row(0, None, bold_big_font)
+        user_count = 0
+        row = 2
         for division in models.Division.objects.all():
-            staff.write_row(row, 0, [division.name, division.user_count, division.user_count_percentage()])
-            staff.set_row(row, None, bold)
+            staff.write(row, 0, division.name, bold)
+            staff.write(row, 1, division.user_count, bold)
+            staff.write(row, 2, division.user_count_percentage() / 100, pct_bold)
+            staff.write
+            user_count += division.user_count
             row += 1
             for cc in division.costcentre_set.all():
-                staff.write_row(row, 0, [cc.name, cc.user_count, cc.user_count_percentage()])
+                staff.write_row(row, 0, [cc.name, cc.user_count, cc.user_count_percentage() / 100])
                 row += 1
-        staff.set_column('A:A', 30)
-        staff.set_column('B:C', 20)
+        staff.set_column('A:A', 34)
+        staff.set_column('B:B', 27)
+        staff.set_column('C:C', 20, pct)
+        # Insert total row at the top
+        staff.write('A2', 'Total', bold_italic)
+        staff.write('B2', user_count, bold_italic)
+        staff.write('C2', 1, pct_bold_italic)
 
         # End User services worksheet
         enduser = workbook.add_worksheet("End-User Services")

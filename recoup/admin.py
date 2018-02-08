@@ -35,7 +35,7 @@ class AllocatedListFilter(admin.SimpleListFilter):
             ('100', '100%'),
             ('gt_100', 'Over allocated')
         )
-    
+
     def queryset(self, request, queryset):
         qs = queryset.annotate(Sum("cost_items__percentage"))
         if self.value() == "0":
@@ -71,7 +71,9 @@ class PlatformAdmin(VersionAdmin):
 
 @admin.register(models.Division)
 class DivisionAdmin(VersionAdmin):
-    list_display = ["__str__", "user_count", "cc_count", "system_count", "bill", "cost", "cost_estimate", "cost_percentage", "cost_estimate_percentage"]
+    list_display = [
+        "__str__", "user_count", "cc_count", "system_count", "bill", "cost", "cost_estimate",
+        "cost_percentage", "cost_estimate_percentage", 'position']
 
 @admin.register(models.CostCentre)
 class CostCentreAdmin(VersionAdmin):
