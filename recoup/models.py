@@ -2,15 +2,14 @@ from datetime import date
 from decimal import Decimal
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.contrib.postgres.fields import JSONField
-from django.core.serializers.json import DjangoJSONEncoder
-from django.core.exceptions import ValidationError
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils.html import format_html
 
+
 def field_sum(queryset, fieldname):
     return queryset.aggregate(models.Sum(fieldname))["{}__sum".format(fieldname)]
+
 
 class CostSummary(models.Model):
     """
@@ -55,6 +54,7 @@ class CostSummary(models.Model):
         abstract = True
         ordering = ('name',)
 
+
 class Contract(CostSummary):
     vendor = models.CharField(max_length=320)
     brand = models.CharField(max_length=320, default="N/A")
@@ -73,6 +73,7 @@ class Contract(CostSummary):
     class Meta:
         ordering = ('vendor',)
 
+
 class FinancialYear(CostSummary):
     """
     Maintains a running total for the full cost of a year
@@ -89,6 +90,7 @@ class FinancialYear(CostSummary):
 
     class Meta:
         ordering = ("end",)
+
 
 class Bill(models.Model):
     """
@@ -109,7 +111,6 @@ class Bill(models.Model):
         return field_sum(self.cost_items.all(), "percentage") or 0
 
     def post_save(self):
-        costs = self.cost_items.all()
         # recalculate child cost values
         for cost in EndUserCost.objects.filter(bill=self):
             cost.save()
@@ -122,16 +123,20 @@ class Bill(models.Model):
     class Meta:
         ordering = ("-cost_estimate",)
 
+
 class ServicePool(CostSummary):
     """
     ServicePool used for reporting
     """
     name = models.CharField(max_length=320, editable=False, unique=True)
 
+
 class Cost(CostSummary):
     name = models.CharField(max_length=320)
     bill = models.ForeignKey(Bill, related_name="cost_items")
-    percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=[MinValueValidator(0), MaxValueValidator(100)])
+    percentage = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)])
     service_pool = models.ForeignKey(ServicePool, related_name="cost_items")
     cost = models.DecimalField(max_digits=12, decimal_places=2, default=0, editable=False)
     cost_estimate = models.DecimalField(max_digits=12, decimal_places=2, default=0, editable=False)
@@ -144,6 +149,7 @@ class Cost(CostSummary):
 
     class Meta:
         ordering = ("-percentage",)
+
 
 class Division(CostSummary):
     """
@@ -164,7 +170,7 @@ class Division(CostSummary):
         for service in self.enduserservice_set.all():
             total += round(Decimal(self.user_count) / Decimal(service.total_user_count()) * service.cost(), 2)
         return total
-    
+
     def enduser_estimate(self):
         total = Decimal(0)
         for service in self.enduserservice_set.all():
@@ -194,6 +200,7 @@ class Division(CostSummary):
 
     class Meta:
         ordering = ('position',)
+
 
 class CostCentre(models.Model):
     name = models.CharField(max_length=128, unique=True)
@@ -227,6 +234,7 @@ class CostCentre(models.Model):
     class Meta:
         ordering = ('name',)
 
+
 class EndUserService(CostSummary):
     """
     Grouping used to simplify linkages of costs to divisions, and for reporting
@@ -240,11 +248,13 @@ class EndUserService(CostSummary):
     def get_cost_queryset(self):
         return self.endusercost_set.filter()
 
+
 class EndUserCost(Cost):
     """
     Broken down cost for end users
     """
     service = models.ForeignKey(EndUserService)
+
 
 class Platform(CostSummary):
     """
@@ -266,6 +276,7 @@ class Platform(CostSummary):
     class Meta(CostSummary.Meta):
         abstract = False
         verbose_name = "IT Platform"
+
 
 class ITSystem(CostSummary):
     """
@@ -301,6 +312,7 @@ class ITSystem(CostSummary):
     class Meta(CostSummary.Meta):
         ordering = ('cost_centre__name', 'name')
 
+
 class SystemDependency(CostSummary):
     """
     Links a system to the platforms it uses
@@ -319,11 +331,13 @@ class SystemDependency(CostSummary):
     class Meta:
         unique_together = (("system", "platform"),)
 
+
 class ITPlatformCost(Cost):
     """
     Broken down cost for IT component
     """
     platform = models.ForeignKey(Platform)
+
 
 @receiver(post_save)
 def post_save_hook(sender, instance, **kwargs):
@@ -331,6 +345,7 @@ def post_save_hook(sender, instance, **kwargs):
         return
     if (hasattr(instance, "post_save")):
         instance.post_save()
+
 
 @receiver(pre_save)
 def pre_save_hook(sender, instance, **kwargs):
