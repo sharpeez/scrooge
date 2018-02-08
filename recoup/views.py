@@ -45,7 +45,7 @@ def DUCReport(request):
 
     with xlsxwriter.Workbook(response, {'in_memory': True}) as workbook:
         bold = workbook.add_format({'bold': True})
-        bold_big_font = workbook.add_format({'bold': True})
+        bold_big_font = workbook.add_format({'bold': True, 'align': 'center'})
         bold_big_font.set_font_size(14)
         bold_italic = workbook.add_format({'bold': True, 'italic': True})
         pct = workbook.add_format({'num_format': '0.00%'})
@@ -80,7 +80,7 @@ def DUCReport(request):
 
         # End User services worksheet
         enduser = workbook.add_worksheet("End-User Services")
-        enduser.write_row("A1", ("End-User Services", "Cost"))
+        enduser.write_row("A1", ("End-User Services", "Estimated Cost ($)"))
         enduser.set_row(0, None, bold_big_font)
         enduser_total = 0
         row = 2
@@ -96,7 +96,7 @@ def DUCReport(request):
 
         # Business IT systems worksheet
         itsystems = workbook.add_worksheet("Business IT Systems")
-        itsystems.write_row("A1", ("Division / Cost Centre", "Business IT Systems", "Cost", "% Total"))
+        itsystems.write_row("A1", ("Division / Cost Centre", "Business IT Systems", "Estimated Cost ($)", "% Total"))
         itsystems.set_row(0, None, bold_big_font)
         # Insert total row at the top
         platform_cost = round(sum([p.cost_estimate() for p in models.Platform.objects.all()]), 2)
@@ -116,12 +116,12 @@ def DUCReport(request):
                 row += 1
         itsystems.set_column('A:A', 34)
         itsystems.set_column('B:B', 67)
-        itsystems.set_column('C:C', 15, money)
+        itsystems.set_column('C:C', 20, money)
         itsystems.set_column('D:D', 15, pct)
 
         # Invoice worksheet
         invoice = workbook.add_worksheet("Invoice")
-        invoice.write_row("A1", ("Division / Cost Centre", "Computer User Accounts", "End User Services", "Business IT Systems", "Total DUC Cost"))
+        invoice.write_row("A1", ("Division / Cost Centre", "Computer User Accounts", "End User Services ($)", "Business IT Systems ($)", "Total DUC Estimated Cost ($)"))
         invoice.set_row(0, None, bold_big_font)
         # Insert total row at the top
         invoice.write('A2', 'Total', bold_italic)
@@ -144,7 +144,8 @@ def DUCReport(request):
                 row += 1
         invoice.set_column('A:A', 34)
         invoice.set_column('B:B', 27)
-        invoice.set_column('C:E', 22, money)
+        invoice.set_column('C:D', 25, money)
+        invoice.set_column('E:E', 32, money)
         workbook.add_worksheet("Bills")
         workbook.add_worksheet("Contracts")
 
