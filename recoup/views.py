@@ -119,8 +119,8 @@ def DUCReport(request):
         itsystems.set_column('C:C', 20, money)
         itsystems.set_column('D:D', 15, pct)
 
-        # Invoice worksheet
-        invoice = workbook.add_worksheet("Invoice")
+        # Statement worksheet
+        invoice = workbook.add_worksheet('Statement')
         invoice.write_row("A1", ("Division / Cost Centre", "Computer User Accounts", "End User Services ($)", "Business IT Systems ($)", "Total DUC Estimated Cost ($)"))
         invoice.set_row(0, None, bold_big_font)
         # Insert total row at the top
