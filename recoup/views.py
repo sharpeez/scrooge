@@ -146,7 +146,29 @@ def DUCReport(request):
         invoice.set_column('B:B', 27)
         invoice.set_column('C:D', 25, money)
         invoice.set_column('E:E', 32, money)
-        workbook.add_worksheet("Bills")
+        # Bill worksheet
+        bills = workbook.add_worksheet("Bills")
+        bills.write_row("A1", ("Brand", "Vendor", "Contract Reference", "Name", "Quantity", "Renewal Date", "DUC Estimate ($)", "Comment"))
+        bills.set_row(0, None, bold_big_font)
+        row = 1
+        for bill in models.Bill.objects.filter(active=True, cost_estimate__gt=0).order_by("contract__brand", "contract__vendor", "name"):
+            bills.write(row, 0, bill.contract.brand)
+            bills.write(row, 1, bill.contract.vendor)
+            bills.write(row, 2, bill.contract.reference)
+            bills.write(row, 3, bill.name)
+            bills.write(row, 4, bill.quantity)
+            if bill.renewal_date:
+                renewal_date = bill.renewal_date.isoformat()
+            else:
+                renewal_date = "N/A"
+            bills.write(row, 5, renewal_date)
+            bills.write(row, 6, bill.cost_estimate)
+            bills.write(row, 7, bill.comment)
+            row += 1
+        bills.set_column('A:F', 40)
+        bills.set_column('G:G', 20, money)
+        bills.set_column('H:H', 60)
+        # Contracts worksheet
         workbook.add_worksheet("Contracts")
 
     return response
