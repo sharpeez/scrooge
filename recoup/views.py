@@ -146,6 +146,7 @@ def DUCReport(request):
         invoice.set_column('B:B', 27)
         invoice.set_column('C:D', 25, money)
         invoice.set_column('E:E', 32, money)
+
         # Bill worksheet
         bills = workbook.add_worksheet("Bills")
         bills.write_row("A1", ("Brand", "Vendor", "Contract Reference", "Name", "Quantity", "Renewal Date", "DUC Estimate ($)", "Comment"))
@@ -165,10 +166,38 @@ def DUCReport(request):
             bills.write(row, 6, bill.cost_estimate)
             bills.write(row, 7, bill.comment)
             row += 1
-        bills.set_column('A:F', 40)
+        bills.set_column('A:F', 30)
         bills.set_column('G:G', 20, money)
         bills.set_column('H:H', 60)
-        # Contracts worksheet
-        workbook.add_worksheet("Contracts")
+
+        # Cost Breakdown worksheet
+        costs = workbook.add_worksheet("Cost Breakdown")
+        costs.write_row("A1", ("End User Service / IT Platform", "Brand", "Vendor", "Contract Reference", "Bill Name", "Cost Name", "Service Pool", "Percentage", "DUC Estimate ($)"))
+        costs.set_row(0, None, bold_big_font)
+        row = 1
+        for cost in models.EndUserCost.objects.order_by("service__name", "bill__contract__brand", "bill__contract__vendor", "bill__name"):
+            costs.write(row, 0, cost.service.name),
+            costs.write(row, 1, cost.bill.contract.brand),
+            costs.write(row, 2, cost.bill.contract.vendor)
+            costs.write(row, 3, cost.bill.contract.reference)
+            costs.write(row, 4, cost.bill.name)
+            costs.write(row, 5, cost.name)
+            costs.write(row, 6, cost.service_pool.name)
+            costs.write(row, 7, cost.percentage)
+            costs.write(row, 8, cost.cost_estimate)
+            row += 1
+        for cost in models.ITPlatformCost.objects.order_by("platform__name", "bill__contract__brand", "bill__contract__vendor", "bill__name"):
+            costs.write(row, 0, cost.platform.name),
+            costs.write(row, 1, cost.bill.contract.brand),
+            costs.write(row, 2, cost.bill.contract.vendor)
+            costs.write(row, 3, cost.bill.contract.reference)
+            costs.write(row, 4, cost.bill.name)
+            costs.write(row, 5, cost.name)
+            costs.write(row, 6, cost.service_pool.name)
+            costs.write(row, 7, cost.percentage)
+            costs.write(row, 8, cost.cost_estimate)
+            row += 1
+        costs.set_column('A:H', 30)
+        costs.set_column('I:I', 20, money)
 
     return response
