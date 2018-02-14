@@ -149,7 +149,61 @@ def DUCReport(request):
         itsystems.set_column('C:C', 22, money)
         itsystems.set_column('D:D', 10, pct)
 
-        workbook.add_worksheet("Bills")
-        workbook.add_worksheet("Contracts")
+        # Bill worksheet
+        bills = workbook.add_worksheet("Bills")
+        bills.write_row("A1", ("Brand", "Vendor", "Contract Reference", "Description", "Quantity", "Renewal Date", "Estimated Cost ($)", "Comment"))
+        bills.set_row(0, None, bold_big_font)
+        row = 1
+        for bill in models.Bill.objects.filter(active=True, cost_estimate__gt=0).order_by("contract__brand", "contract__vendor", "name"):
+            bills.write(row, 0, bill.contract.brand)
+            bills.write(row, 1, bill.contract.vendor)
+            bills.write(row, 2, bill.contract.reference)
+            bills.write(row, 3, bill.name)
+            bills.write(row, 4, bill.quantity)
+            if bill.renewal_date:
+                renewal_date = bill.renewal_date.isoformat()
+            else:
+                renewal_date = "N/A"
+            bills.write(row, 5, renewal_date)
+            bills.write(row, 6, bill.cost_estimate)
+            bills.write(row, 7, bill.comment)
+            row += 1
+        bills.set_column('A:B', 22)
+        bills.set_column('C:C', 36)
+        bills.set_column('D:D', 78)
+        bills.set_column('E:E', 10)
+        bills.set_column('F:F', 16)
+        bills.set_column('G:G', 20, money)
+        bills.set_column('H:H', 60)
+
+        # Cost Breakdown worksheet
+        costs = workbook.add_worksheet("Cost Breakdown")
+        costs.write_row("A1", ("End User Service / IT Platform", "Brand", "Vendor", "Contract Reference", "Description (1)", "Description (2)", "Service Pool", "Percentage", "DUC Estimate ($)"))
+        costs.set_row(0, None, bold_big_font)
+        row = 1
+        for cost in models.EndUserCost.objects.order_by("service__name", "bill__contract__brand", "bill__contract__vendor", "bill__name"):
+            costs.write(row, 0, cost.service.name),
+            costs.write(row, 1, cost.bill.contract.brand),
+            costs.write(row, 2, cost.bill.contract.vendor)
+            costs.write(row, 3, cost.bill.contract.reference)
+            costs.write(row, 4, cost.name)
+            costs.write(row, 5, cost.bill.name)
+            costs.write(row, 6, cost.service_pool.name)
+            costs.write(row, 7, cost.percentage)
+            costs.write(row, 8, cost.cost_estimate)
+            row += 1
+        for cost in models.ITPlatformCost.objects.order_by("platform__name", "bill__contract__brand", "bill__contract__vendor", "bill__name"):
+            costs.write(row, 0, cost.platform.name),
+            costs.write(row, 1, cost.bill.contract.brand),
+            costs.write(row, 2, cost.bill.contract.vendor)
+            costs.write(row, 3, cost.bill.contract.reference)
+            costs.write(row, 4, cost.name)
+            costs.write(row, 5, cost.bill.name)
+            costs.write(row, 6, cost.service_pool.name)
+            costs.write(row, 7, cost.percentage)
+            costs.write(row, 8, cost.cost_estimate)
+            row += 1
+        costs.set_column('A:H', 30)
+        costs.set_column('I:I', 20, money)
 
     return response
