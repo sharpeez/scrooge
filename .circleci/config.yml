@@ -1,0 +1,23 @@
+version: 2
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build:
+          context: dbca_wa
+jobs:
+  build:
+    docker:
+      - image: quay.io/dbca_wa/s2i-docker
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: s2i build
+          command: |
+            s2i build -e SECRET_KEY=build . centos/python-36-centos7 quay.io/dbca_wa/scrooge
+      - deploy:
+          name: push docker image
+          command: |
+            ${DOCKER_LOGIN}
+            docker push quay.io/dbca_wa/scrooge

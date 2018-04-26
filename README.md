@@ -3,3 +3,4 @@ status](https://travis-ci.org/dbca-wa/scrooge.svg?branch=master)](https://travis
 # scrooge
 
 Costing database for reporting against user and system metrics
+s2i build -e SECRET_KEY=build . centos/python-36-centos7 quay.io/dbca_wa/scrooge
