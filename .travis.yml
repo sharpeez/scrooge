@@ -35,7 +35,7 @@ before_deploy:
     - wget https://github.com/openshift/source-to-image/releases/download/v1.1.9a/source-to-image-v1.1.9a-40ad911d-linux-amd64.tar.gz
     - tar xvf source-to-image-v1.1.9a-40ad911d-linux-amd64.tar.gz
     - ./s2i build -e SECRET_KEY=${SECRET_KEY} . centos/python-36-centos7 quay.io/dbca_wa/scrooge:${TRAVIS_BRANCH}
-    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin quay.io
 deploy:
   provider: script
   script: docker push quay.io/dbca_wa/scrooge
