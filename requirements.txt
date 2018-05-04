@@ -1,8 +1,8 @@
 Django<1.12
 django-confy==1.0.4
-git+https://github.com/parksandwildlife/dpaw-utils.git@0.3a16#egg=dpaw-utils
-gevent==1.1.2
-uWSGI==2.0.15
+git+https://github.com/dbca-wa/dpaw-utils.git@0.3a16#egg=dpaw-utils
+uWSGI==2.0.17
+gevent==1.2.2
 django-reversion==2.0.10
 django-import-export==0.5.1
 django-queryset-csv==1.0.0
