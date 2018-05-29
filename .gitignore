@@ -1,7 +1,6 @@
 .bash_history
 .rnd
 .env
-env*
 .coverage
 media/
 logs/

@@ -1,0 +1,2 @@
+APP_MODULE=scrooge.wsgi
+APP_CONFIG=gunicorn.ini
