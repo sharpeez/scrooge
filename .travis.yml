@@ -1,17 +1,16 @@
-sudo: required
+sudo: false
 language: python
 cache: pip
 dist: trusty
 python:
     - 3.6
+services:
+    - postgresql
 addons:
     postgresql: 9.6
     apt:
         packages:
             - postgresql-9.6-postgis-2.3
-services:
-    - postgresql
-    - docker
 branches:
     only:
         - master
@@ -19,25 +18,13 @@ env:
     global:
         - SECRET_KEY="SecretKeyForTravisCI"
         - DATABASE_URL="postgis://postgres@localhost:5432/travis_ci_test"
-sudo: true
 install:
+    - pip install --upgrade pip
     - pip install --upgrade setuptools
     - pip install -r requirements.txt
 before_script:
-    - psql -U postgres -c 'create database travis_ci_test;'
-    - psql -U postgres -c "create extension postgis;"
+    - psql -U postgres -c "create database travis_ci_test;"
+    - psql -U postgres -d travis_ci_test -c "create extension postgis;"
     - python manage.py migrate --noinput
 script:
-    - coverage run --source="." manage.py test
-after_success:
-    - coveralls
-before_deploy:
-    - wget https://github.com/openshift/source-to-image/releases/download/v1.1.9a/source-to-image-v1.1.9a-40ad911d-linux-amd64.tar.gz
-    - tar xvf source-to-image-v1.1.9a-40ad911d-linux-amd64.tar.gz
-    - ./s2i build -e SECRET_KEY=${SECRET_KEY} . centos/python-36-centos7 quay.io/dbca_wa/scrooge:${TRAVIS_BRANCH}
-    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin quay.io
-deploy:
-  provider: script
-  script: docker push quay.io/dbca_wa/scrooge
-  on:
-    all_branches: true
+    - python manage.py test

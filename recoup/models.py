@@ -96,12 +96,12 @@ class Bill(models.Model):
     """
     As Bills are updated they should propagate totals for the financial year
     """
-    contract = models.ForeignKey(Contract)
+    contract = models.ForeignKey(Contract, on_delete=models.PROTECT)
     name = models.CharField(max_length=320, help_text="Product or Service")
     description = models.TextField(default="N/A")
     comment = models.TextField(blank=True, default="")
     quantity = models.CharField(max_length=320, default="1")
-    year = models.ForeignKey(FinancialYear)
+    year = models.ForeignKey(FinancialYear, on_delete=models.PROTECT)
     renewal_date = models.DateField(null=True, blank=True)
     cost = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     cost_estimate = models.DecimalField(max_digits=12, decimal_places=2, default=0)
@@ -133,11 +133,11 @@ class ServicePool(CostSummary):
 
 class Cost(CostSummary):
     name = models.CharField(max_length=320)
-    bill = models.ForeignKey(Bill, related_name="cost_items")
+    bill = models.ForeignKey(Bill, related_name="cost_items", on_delete=models.PROTECT)
     percentage = models.DecimalField(
         max_digits=5, decimal_places=2, default=0,
         validators=[MinValueValidator(0), MaxValueValidator(100)])
-    service_pool = models.ForeignKey(ServicePool, related_name="cost_items")
+    service_pool = models.ForeignKey(ServicePool, related_name="cost_items", on_delete=models.PROTECT)
     cost = models.DecimalField(max_digits=12, decimal_places=2, default=0, editable=False)
     cost_estimate = models.DecimalField(max_digits=12, decimal_places=2, default=0, editable=False)
 
@@ -205,7 +205,7 @@ class Division(CostSummary):
 class CostCentre(models.Model):
     name = models.CharField(max_length=128, unique=True)
     code = models.CharField(max_length=16, unique=True)
-    division = models.ForeignKey(Division)
+    division = models.ForeignKey(Division, on_delete=models.PROTECT)
     user_count = models.PositiveIntegerField(default=0)
 
     def systems(self):
@@ -253,7 +253,7 @@ class EndUserCost(Cost):
     """
     Broken down cost for end users
     """
-    service = models.ForeignKey(EndUserService)
+    service = models.ForeignKey(EndUserService, on_delete=models.PROTECT)
 
 
 class Platform(CostSummary):
@@ -283,9 +283,9 @@ class ITSystem(CostSummary):
     A system owned by a division, that shares the cost of a set of service groups
     """
     system_id = models.CharField(max_length=4, unique=True)
-    cost_centre = models.ForeignKey(CostCentre, null=True)
+    cost_centre = models.ForeignKey(CostCentre, null=True, on_delete=models.PROTECT)
     name = models.CharField(max_length=320)
-    division = models.ForeignKey(Division)
+    division = models.ForeignKey(Division, on_delete=models.PROTECT)
     depends_on = models.ManyToManyField(Platform, through="SystemDependency")
 
     def cost(self):
@@ -317,8 +317,8 @@ class SystemDependency(CostSummary):
     """
     Links a system to the platforms it uses
     """
-    system = models.ForeignKey(ITSystem)
-    platform = models.ForeignKey(Platform)
+    system = models.ForeignKey(ITSystem, on_delete=models.PROTECT)
+    platform = models.ForeignKey(Platform, on_delete=models.PROTECT)
     weighting = models.FloatField(default=1)
 
     def post_save(self):
@@ -336,7 +336,7 @@ class ITPlatformCost(Cost):
     """
     Broken down cost for IT component
     """
-    platform = models.ForeignKey(Platform)
+    platform = models.ForeignKey(Platform, on_delete=models.PROTECT)
 
 
 @receiver(post_save)
