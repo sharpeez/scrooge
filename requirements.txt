@@ -8,3 +8,4 @@ django-reversion==2.0.13
 django-import-export==1.0.1
 django-queryset-csv==1.0.1
 xlsxwriter==1.0.5
+whitenoise==3.3.1

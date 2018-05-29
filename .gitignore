@@ -3,6 +3,7 @@
 .env
 .coverage
 media/
+staticfiles/
 logs/
 static/
 venv/
