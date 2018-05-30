@@ -1,9 +1,9 @@
 .bash_history
 .rnd
 .env
-env*
 .coverage
 media/
+staticfiles/
 logs/
 static/
 venv/

@@ -2,15 +2,16 @@
 WSGI config for scrooge project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/1.11/howto/deployment/wsgi/
 """
-
 import os
 import confy
+from pathlib import Path
 
-confy.read_environment_file()
+# These lines are required for interoperability between local and container environments.
+d = Path(__file__).resolve().parents[1]
+dot_env = os.path.join(str(d), '.env')
+if os.path.exists(dot_env):
+    confy.read_environment_file(dot_env)
 
 from django.core.wsgi import get_wsgi_application
 
