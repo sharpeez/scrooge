@@ -92,3 +92,26 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
+
+
+# Logging settings
+LOGGING = {
+    'version': 1,
+    'formatters': {
+        'console': {'format': '%(levelname)s %(message)s'},
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'console'
+        },
+    },
+    'loggers': {
+        # Log to stdout/stderr by default.
+        'django': {
+            'handlers': ['console'],
+            'level': 'WARNING'
+        },
+    }
+}
