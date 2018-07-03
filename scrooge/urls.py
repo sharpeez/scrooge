@@ -1,13 +1,14 @@
-from django.conf.urls import url
+from django.urls import path
 from django.contrib import admin
-from recoup.views import HomePageView, BillView, DUCReport
+from recoup.views import HomePageView, BillView, DUCReport, HealthCheckView
 
 admin.site.site_header = HomePageView.title
 admin.site.site_name = HomePageView.title
 
 urlpatterns = [
-    url(r'^$', HomePageView.as_view()),
-    url(r'^bill', BillView.as_view()),
-    url(r'^reports/DUCReport.xlsx', DUCReport),
-    url(r'^admin/', admin.site.urls),
+    path('', HomePageView.as_view()),
+    path('bill', BillView.as_view()),
+    path('reports/DUCReport.xlsx', DUCReport),
+    path('healthcheck', HealthCheckView.as_view()),
+    path('admin/', admin.site.urls),
 ]

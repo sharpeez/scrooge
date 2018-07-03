@@ -28,7 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'django_extensions',
-    'import_export',
+    'raven.contrib.django.raven_compat',
     'reversion',
     'scrooge',
     'recoup'
@@ -64,22 +64,6 @@ TEMPLATES = [
 # Database
 DATABASES = {'default': database.config()}
 
-# Password validation
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
-
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'
@@ -97,6 +81,7 @@ STATIC_URL = '/static/'
 # Logging settings
 LOGGING = {
     'version': 1,
+    'disable_existing_loggers': False,
     'formatters': {
         'console': {'format': '%(levelname)s %(message)s'},
     },
@@ -106,12 +91,25 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'console'
         },
+		'sentry': {
+            'level': 'WARNING',
+            'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
+        },
     },
     'loggers': {
-        # Log to stdout/stderr by default.
         'django': {
             'handlers': ['console'],
-            'level': 'WARNING'
+			'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['console', 'sentry'],
+            'level': 'WARNING',
+			'propagate': False,
         },
     }
 }
+
+
+# Sentry configuration
+if env('RAVEN_DSN', False):
+    RAVEN_CONFIG = {'dsn': env('RAVEN_DSN')}
