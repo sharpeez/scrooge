@@ -1,7 +1,7 @@
 [![Build
 status](https://travis-ci.org/dbca-wa/scrooge.svg?branch=master)](https://travis-ci.org/dbca-wa/scrooge/builds)
 
-# Scrooge
+# Scrooge App
 
 Costing database for reporting against user and system metrics.
 
